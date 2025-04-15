@@ -1,0 +1,179 @@
+import React, { useState, useEffect } from "react";
+
+const AdminPanel = () => {
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editEventId, setEditEventId] = useState(null);
+  const [events, setEvents] = useState([]);
+  const [eventData, setEventData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    venue: "",
+  });
+
+  const [registeredStudents, setRegisteredStudents] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [attendance, setAttendance] = useState({}); // Store attendance state
+
+  // Fetch events from backend
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/getEvents");
+        const data = await response.json();
+        if (data.events) {
+          setEvents(data.events);
+        }
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setEventData({
+      ...eventData,
+      [name]: value,
+    });
+  };
+
+  // Create Attendance Table for the event
+  const createAttendanceTable = async (eventTitle) => {
+    try {
+      const response = await fetch("http://localhost:5000/createAttendanceTable", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ eventTitle }),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        console.log(result.message);
+      } else {
+        console.error("Error creating attendance table:", result.message);
+      }
+    } catch (error) {
+      console.error("Error creating attendance table:", error);
+    }
+  };
+
+  // Fetch registered students for the selected event
+  const handleAttendance = async (eventTitle) => {
+    try {
+      const response = await fetch(`http://localhost:5000/getRegisteredStudents/${eventTitle}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setSelectedEvent(eventTitle);
+        setRegisteredStudents(data.registeredStudents || []);
+        createAttendanceTable(eventTitle); // Ensure attendance table is created
+        setAttendance({}); // Reset attendance selection
+      } else {
+        console.error("Error fetching registered students:", data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching registered students:", error);
+    }
+  };
+
+  // Handle checkbox change for marking attendance
+  const handleCheckboxChange = (studentEmail) => {
+    setAttendance((prev) => ({
+      ...prev,
+      [studentEmail]: !prev[studentEmail], // Toggle attendance state
+    }));
+  };
+
+  // Submit attendance to the backend
+  const submitAttendance = async () => {
+    try {
+      for (const studentEmail in attendance) {
+        const attended = attendance[studentEmail];
+
+        await fetch("http://localhost:5000/markAttendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            eventTitle: selectedEvent,
+            studentEmail,
+            attended,
+          }),
+        });
+      }
+
+      alert("Attendance marked successfully!");
+      setSelectedEvent(null); // Close modal
+    } catch (error) {
+      console.error("Error marking attendance:", error);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Welcome to the Admin Panel</h1>
+      <p>Manage events, users, and settings here.</p>
+
+      <button
+        onClick={() => {
+          setIsFormVisible(!isFormVisible);
+          setIsEditing(false);
+        }}
+        className="add-event-button"
+      >
+        {isFormVisible ? "Cancel" : "Add Event (+)"}
+      </button>
+
+      {/* Event List */}
+      <div className="events-list">
+        {events.map((event) => (
+          <div key={event.id} className="event-item">
+            <h3>{event.title}</h3>
+            <p><strong>Date:</strong> {event.date}</p>
+            <p><strong>Time:</strong> {event.time}</p>
+            <p><strong>Location:</strong> {event.venue}</p>
+            <p>{event.description}</p>
+            <button onClick={() => handleAttendance(event.title)} className="attendance-button">
+              📋 Manage Attendance
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* Attendance Modal */}
+      {selectedEvent && (
+        <div className="attendance-modal">
+          <h2>Take Attendance for {selectedEvent}</h2>
+
+          {registeredStudents.length > 0 ? (
+            <ul>
+              {registeredStudents.map((student, index) => (
+                <li key={index}>
+                  {student.student_email}
+                  <input
+                    type="checkbox"
+                    checked={!!attendance[student.student_email]} // Convert undefined to false
+                    onChange={() => handleCheckboxChange(student.student_email)}
+                  />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No students registered for this event.</p>
+          )}
+
+          <button onClick={submitAttendance} className="submit-attendance-button">
+            ✅ Submit Attendance
+          </button>
+          <button onClick={() => setSelectedEvent(null)}>❌ Close</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminPanel;

@@ -1,0 +1,80 @@
+/* Toast.css
+.toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #00ffff;
+    padding: 14px 22px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+    z-index: 9999;
+    animation: slideUpFade 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
+  }
+  
+  @keyframes slideUpFade {
+    from {
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+   */
+
+   /* Custom position for Toastify */
+.Toastify__toast-container {
+  position: fixed !important; /* Ensure it's fixed on the screen */
+  top: 10% !important; /* Position it vertically in the center */
+  left: 50% !important; /* Position it horizontally in the center */
+  transform: translate(-50%, -50%) !important; /* Adjust for exact centering */
+}
+
+.Toastify__toast {
+  background-color: #444; /* Optional: Customize background color */
+  color: #fff; /* Optional: Customize text color */
+}
+
+   .toast {
+    position: fixed;
+    top: -90px;       /* ✅ change from bottom to top */
+    left: 50%;       /* ✅ center horizontally */
+    transform: translateX(-50%); /* ✅ actually center it */
+    background: rgba(0, 0, 0, 0.85);
+    color: #00ffff;
+    padding: 14px 22px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+    z-index: 9999;
+    animation: slideDownFade 0.5s ease, fadeOut 0.5s ease 2.5s forwards;
+  }
+  
+  @keyframes slideDownFade {
+    from {
+      transform: translate(-50%, -20px); /* slide down from above */
+      opacity: 0;
+    }
+    to {
+      transform: translate(-50%, 0);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+      transform: translate(-50%, -10px); /* fade up slightly */
+    }
+  }
+  
