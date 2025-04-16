@@ -1,43 +1,93 @@
 import React from "react";
+import { FaUsers, FaTicketAlt, FaCalendarAlt, FaHeadset, FaQrcode, FaPoll, FaUserShield, FaBell } from "react-icons/fa";
+import "./About.css";
 
 const About = () => {
   return (
-    <div className="page-content">
-      <h1>About Auditoria</h1>
-      <p>
-        Welcome to <strong>Auditoria</strong> – your one-stop solution for hassle-free 
-        <strong> auditorium seat booking</strong>. Whether it's a seminar, concert, conference, or 
-        cultural event, we provide an easy and efficient way to reserve seats at various auditoriums.
-      </p>
+    <div className="about-container">
+      <div className="about-hero">
+        <h1>About Auditoria</h1>
+        <p className="hero-subtitle">A Research Project by RGUKT Students</p>
+      </div>
 
-      <h2>Why Choose Auditoria?</h2>
-      <ul>
-        <li><strong>Seamless Seat Booking:</strong> Browse available events and book seats with ease.</li>
-        <li><strong>Live Seat Availability:</strong> Get real-time updates on available seats.</li>
-        <li><strong>Secure Payments:</strong> Fast and secure transactions for ticket bookings.</li>
-        <li><strong>User-Friendly Experience:</strong> Simple navigation with an intuitive interface.</li>
-      </ul>
+      <div className="about-content">
+        <section className="about-section">
+          <div className="section-text">
+            <h2>Introduction</h2>
+            <ul className="intro-bullets">
+              <li>University auditoriums are essential for student activities such as seminars, workshops, cultural events, and placement drives.</li>
+              <li>Traditional booking and management methods are manual, inefficient, and prone to scheduling conflicts and lack of transparency.</li>
+              <li>Auditoria provides a streamlined, digital solution for booking and managing event spaces within academic institutions.</li>
+            </ul>
+          </div>
+        </section>
 
-      <h2>How It Works?</h2>
-      <p>Auditoria makes seat reservations simple with just a few clicks:</p>
-      <ol>
-        <li>Browse upcoming events listed on our platform.</li>
-        <li>Select your preferred auditorium and seat.</li>
-        <li>Complete the booking and receive instant confirmation.</li>
-      </ol>
+        <section className="features-section">
+          <h2>Problem Statement</h2>
+          <div className="features-grid">
+            <div className="feature-card">
+              <FaCalendarAlt className="feature-icon" />
+              <h3>Inefficient Booking Process</h3>
+              <p>Manual booking processes are time-consuming and prone to errors, involving physical forms and lengthy approval processes.</p>
+            </div>
+            <div className="feature-card">
+              <FaTicketAlt className="feature-icon" />
+              <h3>Lack of Real-Time Availability</h3>
+              <p>Without a digital system, it's challenging to ascertain real-time availability, leading to double bookings and wasted time.</p>
+            </div>
+            <div className="feature-card">
+              <FaBell className="feature-icon" />
+              <h3>Limited Information Dissemination</h3>
+              <p>Announcing events and sharing details relies on notice boards or word-of-mouth, which can be unreliable.</p>
+            </div>
+            <div className="feature-card">
+              <FaUsers className="feature-icon" />
+              <h3>Difficulty in Managing Bookings</h3>
+              <p>Tracking bookings, managing cancellations, and coordinating with different stakeholders becomes complex and cumbersome.</p>
+            </div>
+          </div>
+        </section>
 
-      <h2>Our Mission</h2>
-      <p>
-        At Auditoria, our mission is to revolutionize the way people book seats for events. 
-        We aim to eliminate long queues and last-minute hassles by offering a 
-        <strong> fast, reliable, and transparent booking system</strong>.
-      </p>
+        <section className="mission-section">
+          <h2>Proposed Solution: Auditoria</h2>
+          <div className="mission-content">
+            <p>
+              Auditoria is a web-based system designed to provide a user-friendly and efficient platform for 
+              managing student auditorium bookings. The system incorporates key features to address the identified problems.
+            </p>
+            <div className="mission-stats">
+              <div className="stat-item">
+                <h3>Online Booking</h3>
+                <p>Easy viewing and booking of auditorium spaces</p>
+              </div>
+              <div className="stat-item">
+                <h3>Seat Selection</h3>
+                <p>Choose preferred seating arrangements</p>
+              </div>
+              <div className="stat-item">
+                <h3>Admin Panel</h3>
+                <p>Comprehensive management for authorized personnel</p>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <h2>Get In Touch</h2>
-      <p>
-        Have any questions or need assistance? Reach out to our support team at
-        <strong> support@auditoria.com</strong> or call us at <strong>+1 800-123-4567</strong>.
-      </p>
+        <section className="contact-section">
+          <h2>Key Features</h2>
+          <div className="contact-content">
+            <div className="contact-info">
+              <p><FaTicketAlt /> Online Booking Portal</p>
+              <p><FaUsers /> Desired Seat Selection</p>
+              <p><FaBell /> Notifications and Reminders</p>
+              <p><FaHeadset /> Detailed Event Descriptions</p>
+              <p><FaUserShield /> Admin Panel for SRC, Placements Head, and SDCAC</p>
+              <p><FaQrcode /> QR Code Access</p>
+              <p><FaPoll /> Polling Feature</p>
+              <p><FaUsers /> Attendance Portal (Class Representative Access)</p>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   );
 };

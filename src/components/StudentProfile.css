@@ -1,0 +1,315 @@
+.profile-container {
+  min-height: 100vh;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url('./background_audit.png') center/cover no-repeat;
+  padding: 20px;
+  color: white;
+}
+
+.profile-header {
+  background-color: rgba(33, 33, 33, 0.9);
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  background-color: #e31837;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-icon {
+  font-size: 40px;
+  color: white;
+}
+
+.profile-info h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: white;
+}
+
+.email {
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 5px;
+}
+
+/* Tabs styling */
+.profile-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  background-color: rgba(33, 33, 33, 0.9);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.tab-button.active {
+  background-color: #e31837;
+}
+
+.tab-button:hover {
+  background-color: #c41230;
+}
+
+/* Events Grid */
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.event-card {
+  background-color: rgba(33, 33, 33, 0.9);
+  border-radius: 8px;
+  padding: 20px;
+  transition: transform 0.3s ease;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.event-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.event-status {
+  background-color: #e31837;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+}
+
+.event-status.reacted {
+  background-color: #dc3545;
+  animation: pulse 1.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.event-status:hover {
+  transform: scale(1.05);
+}
+
+.event-description {
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.detail-item svg {
+  color: #e31837;
+}
+
+/* Feedback Section */
+.feedback-section {
+  margin-top: 20px;
+}
+
+.feedback-input {
+  width: 100%;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  margin-bottom: 10px;
+  resize: vertical;
+}
+
+.feedback-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.submit-button {
+  background-color: #e31837;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:hover {
+  background-color: #c41230;
+}
+
+/* Poll Section */
+.poll-section {
+  background-color: rgba(33, 33, 33, 0.9);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.poll-event-title {
+  font-size: 1.5rem;
+  color: white;
+  margin-bottom: 10px;
+}
+
+.poll-event-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.poll-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.poll-vote-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.poll-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.poll-button svg {
+  font-size: 45px;
+  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.poll-button.interested:hover {
+  background-color: rgba(40, 167, 69, 0.4);
+  border-color: #28a745;
+  transform: translateY(-5px);
+}
+
+.poll-button.not-interested:hover {
+  background-color: rgba(220, 53, 69, 0.4);
+  border-color: #dc3545;
+  transform: translateY(-5px);
+}
+
+.poll-button.interested.voted {
+  color: #28a745;
+  background-color: rgba(40, 167, 69, 0.3);
+  border-color: #28a745;
+}
+
+.poll-button.not-interested.voted {
+  color: #dc3545;
+  background-color: rgba(220, 53, 69, 0.3);
+  border-color: #dc3545;
+}
+
+.poll-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.poll-button:disabled svg {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.poll-count {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.vote-label {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.no-events {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 40px;
+  background-color: rgba(33, 33, 33, 0.9);
+  border-radius: 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .events-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .poll-buttons {
+    flex-direction: column;
+  }
+} 

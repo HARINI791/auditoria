@@ -95,10 +95,10 @@ const Register = ({ switchToLogin }) => {
           required
         />
         {errors.password && <p className="error">{errors.password}</p>}
-        <button className="auth-button" onClick={() => navigate("/")} >Back</button>
-        <button type="submit" className="auth-button">
-          Sign Up
-        </button>
+        <div className="auth-button-row">
+          <button className="auth-button" type="button" onClick={() => navigate("/")}>Back</button>
+          <button type="submit" className="auth-button">Sign Up</button>
+        </div>
       </form>
       <p>
      Already have an account?{" "}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { useSelector } from "react-redux"; // Import Redux hook
-import { Routes, Route, Link, useNavigate } from "react-router-dom"; // ❌ Removed BrowserRouter
+import { useSelector, useDispatch } from "react-redux";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { logout } from "./AuthSlice";
 import About from "./About";
 import Services from "./Services";
 import Contact from "./ContactUs";
@@ -9,74 +10,112 @@ import EventsList from "./Eventslist";
 import AdminLogin from "./AdminLogin";
 import AdminPanel from "./AdminPanel";
 import Homepage from "./Homepage";
-import { FaUser, FaBell, FaQuestionCircle, FaSignOutAlt } from "react-icons/fa";
-import { ToastContainer } from "react-toastify";
+import StudentProfile from "./StudentProfile";
+import { FaUser, FaBell, FaQuestionCircle, FaSignOutAlt, FaBars } from "react-icons/fa";
+import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import './Home.css';
 
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
-  const loginMessage = useSelector((state) => state.auth.message); // Get login message from Redux
-  const adminloginMessage = useSelector((state) => state.admin.message); // Get login message from Redux
-  const navigate = useNavigate(); // Get navigation function
+  const [navOpen, setNavOpen] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const userType = useSelector((state) => state.auth.userType);
+  const userEmail = useSelector((state) => state.email.userEmail);
 
-  // // Redirect to EventsList if login is successful
-  // useEffect(() => {
-  //   if (loginMessage === "Login successful") {
-  //     navigate("/eventsList"); // Redirect to EventsList
-  //   }
-  //   if(adminloginMessage === "Login successful"){
-  //     navigate("/AdminPanel");
-  //   }
-  // }, [loginMessage,adminloginMessage ,navigate]);
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.nav-icons') && !event.target.closest('.nav-links')) {
+        setMenuOpen(false);
+        setNavOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // Close menus when route changes
+  useEffect(() => {
+    setMenuOpen(false);
+    setNavOpen(false);
+  }, [navigate]);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
 
   return (
     <div>
       <nav className="navbar">
-        <div className="logo"> <img src="/rgukt_logo.jpeg" alt="Logo" width="120" />Auditoria</div>
-        <ul className="nav-links">
+        <div className="logo">Auditoria</div>
+        <ul className={`nav-links ${navOpen ? 'active' : ''}`}>
           <li><Link to="/about">About</Link></li>
           <li><Link to="/services">Services</Link></li>
           <li><Link to="/contact">Contact Us</Link></li>
-          <li><Link to="/authPage">Register/Login</Link></li> 
-          <li><Link to="/adminLogin">Admin</Link></li>  {/* Add Admin Login */}
+          {!isAuthenticated && (
+            <>
+              <li><Link to="/authPage">Register/Login</Link></li>
+              <li><Link to="/adminLogin">Admin</Link></li>
+            </>
+          )}
+          {isAuthenticated && userType === 'user' && (
+            <>
+              <li><Link to="/eventsList">Events</Link></li>
+            </>
+          )}
+          {isAuthenticated && userType === 'admin' && (
+            <li><Link to="/adminPanel">Admin Panel</Link></li>
+          )}
+          {isAuthenticated && (
+            <li>
+              <button onClick={handleLogout} className="logout-button">
+                <FaSignOutAlt /> Logout
+              </button>
+            </li>
+          )}
         </ul>
-        <div className="menu-icon" onClick={() => setMenuOpen(!menuOpen)}  style={{
-    display: 'inline-block',
-    width: '40px',
-    height: '40px',
-    backgroundColor: '#333',
-    color: '#fff',
-    borderRadius: '8px',
-    textAlign: 'center',
-    lineHeight: '40px',
-    cursor: 'pointer',
-    fontSize: '24px',
-    transition: 'all 0.3s ease',
-  }}>☰</div>
-        {menuOpen && (
+        {isAuthenticated && userType === 'user' && (
+          <div className="nav-icons">
+            <Link to="/profile" className="profile-icon">
+              <FaUser />
+            </Link>
+            <div className="menu-icon" onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen(!menuOpen);
+              setNavOpen(!navOpen);
+            }}>
+              <FaBars />
+            </div>
+          </div>
+        )}
+        {menuOpen && isAuthenticated && userType === 'user' && (
           <div className="dropdown-menu">
-            <a href="#"><FaUser className="icon" /> Student Profile</a>
+            <Link to="/profile"><FaUser className="icon" /> {userEmail}</Link>
             <a href="#"><FaBell className="icon" /> Notifications</a>
-            <a href="#"><FaQuestionCircle className="icon" /> Help & Support</a>
-            <a href="#"><FaSignOutAlt className="icon" /> Logout</a>
+            <a href="#"><FaQuestionCircle className="icon" /> Help</a>
           </div>
         )}
       </nav>
-     
 
-      {/* Show login message
-      {loginMessage && <div className="login-alert">{loginMessage}</div>} */}
-
-       <Routes>
+      <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/authPage" element={<AuthPage />} /> 
-        <Route path="/eventsList" element={<EventsList />} /> 
+        <Route path="/authPage" element={<AuthPage />} />
+        <Route path="/eventsList" element={<EventsList />} />
         <Route path="/adminLogin" element={<AdminLogin />} />
-        <Route path="/adminPanel" element={<AdminPanel />} />  {/* Admin Panel */} 
-      </Routes> 
+        <Route path="/adminPanel" element={<AdminPanel />} />
+        <Route path="/profile" element={<StudentProfile />} />
+      </Routes>
+      <ToastContainer />
     </div>
   );
 };

@@ -1,0 +1,213 @@
+.services-container {
+  padding: 2rem 5%;
+  min-height: 100vh;
+  background-color: var(--netflix-black);
+  color: var(--netflix-white);
+}
+
+.services-hero {
+  text-align: center;
+  padding: 4rem 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+              url('./background_audit.png');
+  background-size: cover;
+  background-position: center;
+  margin-bottom: 3rem;
+  border-radius: 8px;
+}
+
+.services-hero h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+  color: var(--netflix-white);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-subtitle {
+  font-size: 1.5rem;
+  color: var(--netflix-light-gray);
+}
+
+.services-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.main-services,
+.additional-services,
+.benefits-section {
+  margin-bottom: 4rem;
+}
+
+.main-services h2,
+.additional-services h2,
+.benefits-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--netflix-red);
+  text-align: center;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+}
+
+.service-card {
+  background-color: var(--netflix-dark-gray);
+  padding: 2rem;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+  text-align: center;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-icon {
+  font-size: 2.5rem;
+  color: var(--netflix-red);
+  margin-bottom: 1.5rem;
+}
+
+.service-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--netflix-white);
+}
+
+.service-card p {
+  color: var(--netflix-light-gray);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.service-features {
+  list-style: none;
+  padding: 0;
+  text-align: left;
+}
+
+.service-features li {
+  color: var(--netflix-light-gray);
+  margin-bottom: 0.5rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.service-features li::before {
+  content: "✓";
+  color: var(--netflix-red);
+  position: absolute;
+  left: 0;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.benefit-card {
+  background-color: var(--netflix-dark-gray);
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.benefit-card:hover {
+  transform: translateY(-5px);
+}
+
+.benefit-icon {
+  font-size: 2rem;
+  color: var(--netflix-red);
+  margin-bottom: 1rem;
+}
+
+.benefit-card h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: var(--netflix-white);
+}
+
+.benefit-card p {
+  color: var(--netflix-light-gray);
+  line-height: 1.4;
+}
+
+.cta-section {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)),
+              url('./background_audit.png');
+  background-size: cover;
+  background-position: center;
+  border-radius: 8px;
+  margin-top: 4rem;
+}
+
+.cta-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--netflix-white);
+}
+
+.cta-section p {
+  font-size: 1.2rem;
+  color: var(--netflix-light-gray);
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-button {
+  background-color: var(--netflix-red);
+  color: var(--netflix-white);
+  border: none;
+  padding: 1rem 2.5rem;
+  font-size: 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.cta-button:hover {
+  background-color: #e50914;
+}
+
+@media (max-width: 768px) {
+  .services-hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .main-services h2,
+  .additional-services h2,
+  .benefits-section h2 {
+    font-size: 2rem;
+  }
+
+  .services-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cta-section {
+    padding: 3rem 1rem;
+  }
+
+  .cta-section h2 {
+    font-size: 2rem;
+  }
+} 

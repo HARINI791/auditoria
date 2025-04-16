@@ -1,0 +1,111 @@
+.page-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  color: var(--netflix-white);
+}
+
+.page-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--netflix-red);
+  text-align: center;
+}
+
+.page-content h2 {
+  font-size: 1.8rem;
+  margin: 2rem 0 1rem;
+  color: var(--netflix-white);
+}
+
+.page-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  color: var(--netflix-light-gray);
+}
+
+.page-content ul {
+  list-style-type: none;
+  padding-left: 0;
+  margin-bottom: 2rem;
+}
+
+.page-content ul li {
+  margin-bottom: 1rem;
+  padding-left: 1.5rem;
+  position: relative;
+  color: var(--netflix-light-gray);
+}
+
+.page-content ul li:before {
+  content: "•";
+  color: var(--netflix-red);
+  position: absolute;
+  left: 0;
+}
+
+.page-content ul li strong {
+  color: var(--netflix-white);
+  margin-right: 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .page-content {
+    padding: 1.5rem;
+  }
+
+  .page-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .page-content h2 {
+    font-size: 1.6rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 1rem;
+  }
+
+  .page-content h1 {
+    font-size: 2rem;
+  }
+
+  .page-content h2 {
+    font-size: 1.4rem;
+  }
+
+  .page-content p {
+    font-size: 1rem;
+  }
+
+  .page-content ul li {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: 0.8rem;
+  }
+
+  .page-content h1 {
+    font-size: 1.8rem;
+  }
+
+  .page-content h2 {
+    font-size: 1.3rem;
+  }
+
+  .page-content p {
+    font-size: 0.9rem;
+  }
+
+  .page-content ul li {
+    font-size: 0.9rem;
+    padding-left: 1.2rem;
+  }
+} 
