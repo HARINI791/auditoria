@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// JWT Secret Key harini
+// JWT Secret Key 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // MySQL Connection with simplified configuration
