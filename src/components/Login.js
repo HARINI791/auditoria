@@ -38,18 +38,22 @@ const Login = ({ switchToRegister }) => {
         dispatch(setUserEmail(formData.email));
         dispatch(setMessage(data.message));
   
-        toast.success(data.message);  // Show success message
-  
-        // Delay navigation after toast
-        setTimeout(() => {
-          navigate("/eventsList");
-        }, 1500);  // Wait for 1.5 seconds before redirecting
+        toast.success(data.message, {
+          autoClose: 1000,
+          onClose: () => {
+            navigate("/eventsList");
+          }
+        });
       } else {
-        toast.error(data.message || "Login failed");
+        toast.error(data.message || "Login failed", {
+          autoClose: 1000
+        });
       }
   
     } catch (error) {
-      toast.error("Server error, try again.");
+      toast.error("Server error, try again.", {
+        autoClose: 1000
+      });
     }
   };
 

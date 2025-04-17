@@ -1,0 +1,147 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 999;
+}
+
+.attendance-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--netflix-dark-gray);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.attendance-modal-content {
+  width: 100%;
+}
+
+.search-container {
+  margin: 15px 0;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 15px;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--netflix-white);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--netflix-red);
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  color: var(--netflix-white);
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.attendance-table th {
+  background-color: rgba(0, 0, 0, 0.2);
+  font-weight: bold;
+}
+
+.attendance-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.attendance-table input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+}
+
+.search-toggle-container {
+  margin: 15px 0;
+  text-align: center;
+}
+
+.search-toggle-button {
+  background: var(--netflix-red);
+  color: var(--netflix-white);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.search-toggle-button:hover {
+  background: #e50914;
+}
+
+.search-toggle-button .button-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.submit-attendance-button,
+.close-button {
+  background: var(--netflix-red);
+  color: var(--netflix-white);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.3s ease;
+  min-height: 45px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.submit-attendance-button:hover,
+.close-button:hover {
+  background: #e50914;
+} 

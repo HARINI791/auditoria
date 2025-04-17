@@ -4,16 +4,37 @@ import { clearMessage } from "./AuthSlice";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaSearch } from 'react-icons/fa';
 import './Eventslist.css';
 
 const EventsList = () => {
   const [events, setEvents] = useState([]);
   const [registeredEvents, setRegisteredEvents] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const userEmail = useSelector((state) => state.email.userEmail);
   const loginMessage = useSelector((state) => state.auth.message);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  };
+
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    const date = new Date();
+    date.setHours(parseInt(hours), parseInt(minutes));
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
 
   useEffect(() => {
     if (!userEmail) {
@@ -92,30 +113,50 @@ const EventsList = () => {
     }
   };
 
+  const filteredEvents = events.filter(event =>
+    event.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="events-container">
       <div className="admin-header">
+       
         <h1 className="admin-heading">Upcoming Events</h1>
-        <button
-          type="button"
-          className="back-button"
-          onClick={() => navigate("/")}
-        >
-          ⬅ Back
-        </button>
+        <div className="header-right">
+          <div className="search-container">
+            <div className="search-input-wrapper">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Search for Events.."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+            </div>
+          </div>
+       
+          <button
+            type="button"
+            className="back-button"
+            onClick={() => navigate("/")}
+          >
+            ⬅ Back
+          </button>
+        </div>
       </div>
       {userEmail && <p>Logged in as: <strong>{userEmail}</strong></p>}
       
       <div className="events-list">
-        {events.map((event) => {
+        {filteredEvents.map((event) => {
           const isFull = event.current_registrations >= event.Max_registrations;
           const isRegistered = registeredEvents.includes(event.title);
 
           return (
             <div key={event.id} className="event-item">
               <h3>{event.title}</h3>
-              <p><strong>Date:</strong> {event.date}</p>
-              <p><strong>Time:</strong> {event.time}</p>
+              <p><strong>Date:</strong> {formatDate(event.date)}</p>
+              <p><strong>Time:</strong> {formatTime(event.time)}</p>
               <p><strong>Location:</strong> {event.venue}</p>
               <p>{event.description}</p>
               <p><strong>Registered:</strong> {event.current_registrations} / {event.Max_registrations}</p>
@@ -133,6 +174,11 @@ const EventsList = () => {
             </div>
           );
         })}
+        {filteredEvents.length === 0 && (
+          <div className="no-events">
+            <p>No events found matching your search.</p>
+          </div>
+        )}
       </div>
       <ToastContainer />
     </div>

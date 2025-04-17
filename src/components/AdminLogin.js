@@ -57,17 +57,21 @@ const AdminLogin = () => {
         dispatch(setUserType('admin'));
         dispatch(setMessage(data.message));
 
-        toast.success(data.message);
-
-        setTimeout(() => {
-          navigate("/adminPanel");
-        }, 1500);
+        toast.success(data.message, {
+          autoClose: 1000,
+          onClose: () => {
+            navigate("/adminPanel");
+          }
+        });
       } else {
-        toast.error(data.message || "Login failed");
+        toast.error(data.message || "Login failed", {
+          autoClose: 1000
+        });
       }
     } catch (error) {
-      setServerError("Server error, try again.");
-      toast.error("Server error, try again.");
+      toast.error("Server error, try again.", {
+        autoClose: 1000
+      });
     }
   };
 

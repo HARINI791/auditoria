@@ -14,16 +14,16 @@ function App() {
       <Home /> 
       <ToastContainer 
         position="top-center"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
+        autoClose={1000}
+        hideProgressBar={true}
+        newestOnTop={true}
+        closeOnClick={true}
         rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+        pauseOnFocusLoss={false}
+        draggable={true}
+        pauseOnHover={false}
         theme="light"
-        transition={Bounce}
+        limit={1}
       />
     </div>
   );

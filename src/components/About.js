@@ -7,21 +7,11 @@ const About = () => {
     <div className="about-container">
       <div className="about-hero">
         <h1>About Auditoria</h1>
-        <p className="hero-subtitle">A Research Project by RGUKT Students</p>
+        <p className="hero-subtitle">A Project by RGUKT Students</p>
       </div>
 
       <div className="about-content">
-        <section className="about-section">
-          <div className="section-text">
-            <h2>Introduction</h2>
-            <ul className="intro-bullets">
-              <li>University auditoriums are essential for student activities such as seminars, workshops, cultural events, and placement drives.</li>
-              <li>Traditional booking and management methods are manual, inefficient, and prone to scheduling conflicts and lack of transparency.</li>
-              <li>Auditoria provides a streamlined, digital solution for booking and managing event spaces within academic institutions.</li>
-            </ul>
-          </div>
-        </section>
-
+       
         <section className="features-section">
           <h2>Problem Statement</h2>
           <div className="features-grid">

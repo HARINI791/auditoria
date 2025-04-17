@@ -12,11 +12,18 @@
 .events-container {
   min-height: 100vh;
   padding: 2rem;
-  background: var(--netflix-black);
   color: var(--netflix-white);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
   background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
-  url('https://assets.nflxext.com/ffe/siteui/vlv3/9c5457b8-9ab0-4a04-9fc1-e608d5670f1a/710d74e0-7158-408e-8d9b-23c219dee5df/TV-en-20210719-popsignuptwoweeks-perspective_alpha_website_small.jpg');
+    url('https://assets.nflxext.com/ffe/siteui/vlv3/9c5457b8-9ab0-4a04-9fc1-e608d5670f1a/710d74e0-7158-408e-8d9b-23c219dee5df/TV-en-20210719-popsignuptwoweeks-perspective_alpha_website_small.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: repeat;
+}
+
+.events-container::before {
+  display: none;
 }
 
 .admin-header {
@@ -129,21 +136,44 @@
 }
 
 .event-item {
-  background: rgba(33, 33, 33, 0.95);
+  background: var(--netflix-dark-gray);
+  padding: 0.8rem 0.8rem 1.2rem 0.8rem;
+  margin-bottom: 1.5rem;
   border-radius: 8px;
-  padding: 1.2rem;
-  margin-bottom: 1rem;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  transition: all var(--transition-speed);
-  width: 100%;
-  max-width: 300px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
 }
 
-.event-item:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-  border-color: var(--netflix-red);
+.event-content {
+  flex-grow: 1;
+  margin-bottom: 1rem;
+}
+
+.event-description {
+  max-height: 100px;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin: 10px 0;
+  /* Styling the scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: var(--netflix-red) rgba(255, 255, 255, 0.1);
+}
+
+.event-description::-webkit-scrollbar {
+  width: 8px;
+}
+
+.event-description::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.event-description::-webkit-scrollbar-thumb {
+  background-color: var(--netflix-red);
+  border-radius: 4px;
 }
 
 .event-item h3 {
@@ -158,6 +188,7 @@
   margin-bottom: 0.8rem;
   font-size: 0.95rem;
   line-height: 1.4;
+ 
 }
 
 .event-item p strong {
@@ -176,47 +207,78 @@
 .event-actions {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
+  gap: 10px;
+  margin-top: auto;
 }
 
 .edit-delete-buttons {
   display: flex;
-  gap: 0.5rem;
+  gap: 10px;
+  justify-content: center;
   width: 100%;
 }
 
 .edit-event-button,
-.delete-event-button,
-.attendance-button {
+.delete-event-button {
+  background: var(--netflix-red);
+  color: var(--netflix-white);
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  padding: 0.8rem;
+  gap: 8px;
+  width: 120px;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.attendance-button {
+  background: #333;
+  color: var(--netflix-white);
+  border: none;
+  padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  transition: all 0.3s ease;
-  text-align: center;
-  border: none;
-  background: var(--netflix-red);
-  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
 }
 
 .button-icon {
-  font-size: 1.1rem;
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.edit-event-button .button-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E");
+}
+
+.delete-event-button .button-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z'/%3E%3C/svg%3E");
+}
+
+.attendance-button .button-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z'/%3E%3C/svg%3E");
 }
 
 .edit-event-button:hover,
-.delete-event-button:hover,
+.delete-event-button:hover {
+  background: #e50914;
+}
+
 .attendance-button:hover {
-  background: var(--netflix-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(229, 9, 20, 0.3);
+  background: #444;
 }
 
 .attendance-modal {
@@ -530,13 +592,25 @@
 }
 
 .close-button {
-  background: transparent;
+  /* background: transparent;
   color: var(--netflix-white);
   border: 1px solid var(--netflix-light-gray);
   padding: 0.8rem 1.5rem;
   border-radius: 4px;
   cursor: pointer;
+  transition: all var(--transition-speed); */
+  background: var(--netflix-red);
+  color: var(--netflix-white);
+  border: none;
+  padding: 1rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
   transition: all var(--transition-speed);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .close-button:hover {

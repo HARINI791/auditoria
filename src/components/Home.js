@@ -47,8 +47,12 @@ const Home = () => {
 
   const handleLogout = () => {
     dispatch(logout());
-    toast.success("Logged out successfully");
-    navigate("/");
+    toast.success("Logged out successfully", {
+      autoClose: 1000,
+      onClose: () => {
+        navigate("/");
+      }
+    });
   };
 
   return (
