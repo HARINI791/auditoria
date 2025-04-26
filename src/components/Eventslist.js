@@ -15,6 +15,7 @@ const EventsList = () => {
   const loginMessage = useSelector((state) => state.auth.message);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -76,16 +77,19 @@ const EventsList = () => {
         const data = await response.json();
         if (data.events) {
           setRegisteredEvents(data.events.map(event => event.title));
+        } else {
+          setRegisteredEvents([]); // Ensure empty array if no events
         }
       } catch (error) {
         console.error("Error fetching registered events:", error);
+        setRegisteredEvents([]); // Reset to empty array on error
       }
     };
 
     fetchRegisteredEvents();
   }, [userEmail]);
 
-  const handleRegister = async (eventTitle) => {
+  const handleRegister = async (eventTitle, eventDate, eventTime, eventDescription, eventVenue) => {
     if (!userEmail) {
       toast.error("Please log in to register for events.");
       return;
@@ -95,7 +99,7 @@ const EventsList = () => {
       const response = await fetch("http://localhost:5000/registerForEvent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userEmail, eventTitle }),
+        body: JSON.stringify({ userEmail, eventTitle, eventDate, eventTime, eventDescription, eventVenue }),
       });
 
       const data = await response.json();
@@ -103,7 +107,7 @@ const EventsList = () => {
       if (response.ok) {
         toast.success(data.message);
         // Update registered events list
-        setRegisteredEvents([...registeredEvents, eventTitle]);
+        setRegisteredEvents(prev => [...prev, eventTitle]);
       } else {
         toast.error(data.message);
       }
@@ -116,6 +120,20 @@ const EventsList = () => {
   const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const scrollEvents = (direction) => {
+    const container = document.querySelector('.events-scroll-content');
+    const scrollAmount = 300; // Adjust this value to control scroll distance
+    const newPosition = direction === 'left' 
+      ? scrollPosition - scrollAmount 
+      : scrollPosition + scrollAmount;
+    
+    container.scrollTo({
+      left: newPosition,
+      behavior: 'smooth'
+    });
+    setScrollPosition(newPosition);
+  };
 
   return (
     <div className="events-container">
@@ -148,37 +166,57 @@ const EventsList = () => {
       {userEmail && <p>Logged in as: <strong>{userEmail}</strong></p>}
       
       <div className="events-list">
-        {filteredEvents.map((event) => {
-          const isFull = event.current_registrations >= event.Max_registrations;
-          const isRegistered = registeredEvents.includes(event.title);
-
-          return (
-            <div key={event.id} className="event-item">
-              <h3>{event.title}</h3>
-              <p><strong>Date:</strong> {formatDate(event.date)}</p>
-              <p><strong>Time:</strong> {formatTime(event.time)}</p>
-              <p><strong>Location:</strong> {event.venue}</p>
-              <p>{event.description}</p>
-              <p><strong>Registered:</strong> {event.current_registrations} / {event.Max_registrations}</p>
-              <button
-                onClick={() => handleRegister(event.title)}
-                className="register-button"
-                disabled={isFull || isRegistered}
-                style={{ 
-                  backgroundColor: isRegistered ? "#4CAF50" : (isFull ? "#aaa" : "#4CAF50"),
-                  cursor: (isFull || isRegistered) ? "not-allowed" : "pointer"
-                }}
-              >
-                {isRegistered ? "Already Registered" : (isFull ? "Event Full" : "Register Now")}
-              </button>
-            </div>
-          );
-        })}
-        {filteredEvents.length === 0 && (
-          <div className="no-events">
-            <p>No events found matching your search.</p>
+        <div className="events-section">
+          <div className="section-header">
+            <h2 className="section-title">Academic Events</h2>
           </div>
-        )}
+          <div className="scroll-container">
+            <button 
+              className="scroll-arrow scroll-arrow-left"
+              onClick={() => scrollEvents('left')}
+              disabled={scrollPosition <= 0}
+            >
+              ←
+            </button>
+            <div className="scroll-content events-scroll-content">
+              {Array.isArray(filteredEvents) && filteredEvents.length > 0 ? (
+                filteredEvents.map((event) => {
+                  const isFull = event.current_registrations >= event.Max_registrations;
+                  const isRegistered = registeredEvents.includes(event.title);
+
+                  return (
+                    <div key={event.id} className="event-card">
+                      <h3>{event.title}</h3>
+                      <p><strong>Date:</strong> {formatDate(event.date)}</p>
+                      <p><strong>Time:</strong> {formatTime(event.time)}</p>
+                      <p><strong>Location:</strong> {event.venue}</p>
+                      <div className="event-description">
+                        <p>{event.description}</p>
+                      </div>
+                      <div className="event-actions">
+                        <button
+                          onClick={() => handleRegister(event.title, event.date, event.time, event.description, event.venue)}
+                          className={`register-button ${isRegistered ? 'registered' : ''}`}
+                          disabled={isFull || isRegistered}
+                        >
+                          {isRegistered ? 'Registered' : (isFull ? 'Event Full' : 'Register')}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p>No events found matching your search.</p>
+              )}
+            </div>
+            <button 
+              className="scroll-arrow scroll-arrow-right"
+              onClick={() => scrollEvents('right')}
+            >
+              →
+            </button>
+          </div>
+        </div>
       </div>
       <ToastContainer />
     </div>

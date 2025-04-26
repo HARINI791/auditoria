@@ -3,8 +3,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem 5%;
-  background-color: var(--netflix-black);
   color: var(--netflix-white);
   position: sticky;
   top: 0;
@@ -252,5 +250,60 @@
   .logout-btn {
     padding: 0.4rem 1rem;
     font-size: 0.8rem;
+  }
+}
+
+/* Events Dropdown Styles */
+.events-dropdown {
+  position: relative;
+}
+
+.events-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  color: var(--netflix-white);
+  transition: color 0.3s ease;
+}
+
+.events-dropdown-trigger:hover {
+  color: var(--netflix-red);
+}
+
+.events-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--netflix-dark-gray);
+  min-width: 200px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  animation: slideDown 0.3s ease;
+}
+
+.events-dropdown-menu a {
+  display: block;
+  padding: 0.8rem 1rem;
+  color: var(--netflix-white);
+  text-decoration: none;
+  transition: background-color 0.3s ease;
+}
+
+.events-dropdown-menu a:hover {
+  background-color: var(--netflix-black);
+  color: var(--netflix-red);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 } 

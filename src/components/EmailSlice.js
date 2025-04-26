@@ -3,18 +3,20 @@ import { createSlice } from "@reduxjs/toolkit";
 const emailSlice = createSlice({
   name: "email",
   initialState: {
-    userEmail: null,
+    userEmail: localStorage.getItem('userEmail') || null,
     message: "",
   },
   reducers: {
     setUserEmail: (state, action) => {
       state.userEmail = action.payload;
+      localStorage.setItem('userEmail', action.payload);
     },
-    // setMessage: (state, action) => {
-    //   state.message = action.payload;
-    // },
+    clearUserEmail: (state) => {
+      state.userEmail = null;
+      localStorage.removeItem('userEmail');
+    }
   },
 });
 
-export const { setUserEmail } = emailSlice.actions;
+export const { setUserEmail, clearUserEmail } = emailSlice.actions;
 export default emailSlice.reducer;

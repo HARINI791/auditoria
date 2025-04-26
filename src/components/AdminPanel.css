@@ -10,7 +10,7 @@
 }
 
 .events-container {
-  min-height: 100vh;
+  
   padding: 2rem;
   color: var(--netflix-white);
   font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -18,13 +18,20 @@
     url('https://assets.nflxext.com/ffe/siteui/vlv3/9c5457b8-9ab0-4a04-9fc1-e608d5670f1a/710d74e0-7158-408e-8d9b-23c219dee5df/TV-en-20210719-popsignuptwoweeks-perspective_alpha_website_small.jpg');
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
-  background-repeat: repeat;
+  
+  
+  background-repeat:no-repeat;
 }
+
+
+
 
 .events-container::before {
   display: none;
+  
 }
+
+
 
 .admin-header {
   display: flex;
@@ -96,43 +103,45 @@
 }
 
 .event-form {
-  background: var(--netflix-dark-gray);
-  padding: 2rem;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: var(--netflix-dark-gray);
   border-radius: 8px;
-  margin-bottom: 2rem;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.event-form div {
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .event-form label {
-  margin-bottom: 0.5rem;
-  color: var(--netflix-light-gray);
+  display: block;
+  color: var(--netflix-white);
+  margin-bottom: 5px;
   font-size: 0.9rem;
 }
 
-.event-form input,
+.event-form input[type="text"],
+.event-form input[type="date"],
+.event-form input[type="number"],
 .event-form textarea {
-  padding: 0.8rem;
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid var(--netflix-gray);
   border-radius: 4px;
-  border: 1px solid var(--netflix-dark-gray);
-  background: rgba(0, 0, 0, 0.3);
+  background-color: var(--netflix-black);
   color: var(--netflix-white);
-  font-size: 1rem;
-  transition: all var(--transition-speed);
 }
 
-.event-form input:focus,
+.event-form input[type="text"]:focus,
+.event-form input[type="date"]:focus,
+.event-form input[type="number"]:focus,
 .event-form textarea:focus {
-  outline: none;
   border-color: var(--netflix-red);
-  background: rgba(0, 0, 0, 0.5);
+  outline: none;
+}
+
+.event-form textarea {
+  min-height: 100px;
+  resize: vertical;
 }
 
 .event-item {
@@ -197,11 +206,10 @@
 }
 
 .events-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 300px));
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
   padding: 1rem;
-  justify-content: start;
 }
 
 .event-actions {
@@ -370,27 +378,20 @@
 }
 
 .add-event-submit-button {
-  background: var(--netflix-red);
-  color: var(--netflix-white);
+  background-color: var(--netflix-red);
+  color: white;
+  padding: 10px 20px;
   border: none;
-  padding: 1rem 2rem;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
-  transition: all var(--transition-speed);
+  font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 1px;
-  width: 100%;
-  margin-top: 1rem;
-  grid-column: 1 / -1;
-  box-shadow: 0 2px 8px rgba(229, 9, 20, 0.2);
+  transition: background-color 0.3s ease;
 }
 
 .add-event-submit-button:hover {
-  background: var(--netflix-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+  background-color: #e50914;
 }
 
 /* Responsive Design */
@@ -616,4 +617,676 @@
 .close-button:hover {
   background: var(--netflix-dark-gray);
   border-color: var(--netflix-red);
-} 
+}
+
+/* Delete Modal Styles */
+.delete-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.delete-modal {
+  background-color: var(--netflix-dark-gray);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  animation: modalFadeIn 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.delete-modal h3 {
+  color: var(--netflix-red);
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.delete-modal p {
+  color: var(--netflix-white);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+  font-size: 1rem;
+}
+
+.delete-modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.delete-modal-cancel,
+.delete-modal-confirm {
+  padding: 0.8rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.delete-modal-cancel {
+  background-color: transparent;
+  border: 1px solid var(--netflix-light-gray);
+  color: var(--netflix-white);
+}
+
+.delete-modal-cancel:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: var(--netflix-red);
+}
+
+.delete-modal-confirm {
+  background-color: var(--netflix-red);
+  border: none;
+  color: var(--netflix-white);
+}
+
+.delete-modal-confirm:hover {
+  background-color: var(--netflix-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(229, 9, 20, 0.3);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .delete-modal {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .delete-modal-buttons {
+    flex-direction: column;
+  }
+
+  .delete-modal-cancel,
+  .delete-modal-confirm {
+    width: 100%;
+  }
+}
+
+.slots-container {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: var(--netflix-dark-gray);
+  border-radius: 4px;
+}
+
+.slots-container h3 {
+  color: var(--netflix-white);
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+}
+
+.slot-input {
+  margin-bottom: 10px;
+}
+
+.slot-input label {
+  display: block;
+  color: var(--netflix-white);
+  margin-bottom: 5px;
+}
+
+.slot-input input[type="time"] {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--netflix-gray);
+  border-radius: 4px;
+  background-color: var(--netflix-black);
+  color: var(--netflix-white);
+}
+
+.slot-input input[type="time"]:focus {
+  border-color: var(--netflix-red);
+  outline: none;
+}
+
+/* Update the form styles to accommodate the new fields */
+.event-form {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: var(--netflix-dark-gray);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.event-form label {
+  display: block;
+  color: var(--netflix-white);
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.event-form input[type="text"],
+.event-form input[type="date"],
+.event-form input[type="number"],
+.event-form textarea {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid var(--netflix-gray);
+  border-radius: 4px;
+  background-color: var(--netflix-black);
+  color: var(--netflix-white);
+}
+
+.event-form input[type="text"]:focus,
+.event-form input[type="date"]:focus,
+.event-form input[type="number"]:focus,
+.event-form textarea:focus {
+  border-color: var(--netflix-red);
+  outline: none;
+}
+
+.event-form textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.add-event-submit-button {
+  background-color: var(--netflix-red);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: background-color 0.3s ease;
+}
+
+.add-event-submit-button:hover {
+  background-color: #e50914;
+}
+
+/* Non-Academic Events Form Styling */
+.non-academic-form {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 30px;
+  background-color: var(--netflix-dark-gray);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.non-academic-form h2 {
+  color: var(--netflix-red);
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.non-academic-form .form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.non-academic-form label {
+  display: block;
+  color: var(--netflix-white);
+  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.non-academic-form input[type="text"],
+.non-academic-form input[type="date"],
+.non-academic-form input[type="number"],
+.non-academic-form textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--netflix-white);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.non-academic-form input[type="text"]:focus,
+.non-academic-form input[type="date"]:focus,
+.non-academic-form input[type="number"]:focus,
+.non-academic-form textarea:focus {
+  border-color: var(--netflix-red);
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
+  outline: none;
+}
+
+.non-academic-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Slots Container Styling */
+.slots-container {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.slots-container h3 {
+  color: var(--netflix-white);
+  margin-bottom: 20px;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.slot-input {
+  margin-bottom: 15px;
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+}
+
+.slot-input:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.slot-input label {
+  display: block;
+  color: var(--netflix-white);
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.slot-input input[type="time"] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--netflix-white);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.slot-input input[type="time"]:focus {
+  border-color: var(--netflix-red);
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
+  outline: none;
+}
+
+/* Submit Button Styling */
+.non-academic-submit-button {
+  background-color: var(--netflix-red);
+  color: white;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  width: 100%;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.non-academic-submit-button:hover {
+  background-color: #e50914;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+}
+
+.non-academic-submit-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .non-academic-form {
+    padding: 20px;
+    margin: 20px 15px;
+  }
+
+  .non-academic-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .slots-container {
+    padding: 15px;
+  }
+
+  .slot-input {
+    padding: 10px;
+  }
+}
+
+/* Animation for form elements */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.non-academic-form .form-group,
+.slots-container,
+.non-academic-submit-button {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom scrollbar for textarea */
+.non-academic-form textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.non-academic-form textarea::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.non-academic-form textarea::-webkit-scrollbar-thumb {
+  background-color: var(--netflix-red);
+  border-radius: 4px;
+}
+
+/* Academic Events Form Styling */
+.academic-form {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 30px;
+  background-color: var(--netflix-dark-gray);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.academic-form h2 {
+  color: var(--netflix-red);
+  margin-bottom: 25px;
+  font-size: 1.8rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 700;
+}
+
+.academic-form .form-group {
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.academic-form label {
+  display: block;
+  color: var(--netflix-white);
+  margin-bottom: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.academic-form input[type="text"],
+.academic-form input[type="date"],
+.academic-form input[type="time"],
+.academic-form input[type="number"],
+.academic-form textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: var(--netflix-white);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.academic-form input[type="text"]:focus,
+.academic-form input[type="date"]:focus,
+.academic-form input[type="time"]:focus,
+.academic-form input[type="number"]:focus,
+.academic-form textarea:focus {
+  border-color: var(--netflix-red);
+  background-color: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(229, 9, 20, 0.3);
+  outline: none;
+}
+
+.academic-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.academic-form .form-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.academic-form .form-row .form-group {
+  margin-bottom: 0;
+}
+
+/* Submit Button Styling */
+.academic-submit-button {
+  background-color: var(--netflix-red);
+  color: white;
+  padding: 15px 30px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 1.1rem;
+  width: 100%;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.academic-submit-button:hover {
+  background-color: #e50914;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(229, 9, 20, 0.4);
+}
+
+.academic-submit-button:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design for Academic Form */
+@media (max-width: 768px) {
+  .academic-form {
+    padding: 20px;
+    margin: 20px 15px;
+  }
+
+  .academic-form h2 {
+    font-size: 1.5rem;
+  }
+
+  .academic-form .form-row {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+/* Animation for academic form elements */
+.academic-form .form-group,
+.academic-form .form-row,
+.academic-submit-button {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom scrollbar for academic form textarea */
+.academic-form textarea::-webkit-scrollbar {
+  width: 8px;
+}
+
+.academic-form textarea::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.academic-form textarea::-webkit-scrollbar-thumb {
+  background-color: var(--netflix-red);
+  border-radius: 4px;
+}
+
+.events-section {
+  margin-bottom: 2rem;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--netflix-dark-gray);
+}
+
+.section-title {
+  color: var(--netflix-red);
+  font-size: 1.8rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.scroll-container {
+  display: flex;
+  position: relative;
+  overflow: hidden;
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+.scroll-content {
+  display: flex;
+  overflow-x: auto;
+  gap: 1.5rem;
+  padding: 0 2rem;
+  scroll-behavior: smooth;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scroll-content::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  background: var(--netflix-red);
+  border: none;
+  border-radius: 50%;
+  color: var(--netflix-white);
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: all 0.3s ease;
+}
+
+.scroll-arrow:hover {
+  background: var(--netflix-hover);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.scroll-arrow-left {
+  left: 0;
+}
+
+.scroll-arrow-right {
+  right: 0;
+}
+
+.scroll-arrow:disabled {
+  background: var(--netflix-dark-gray);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.event-card {
+  min-width: 300px;
+  max-width: 300px;
+  background: var(--netflix-dark-gray);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.event-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(229, 9, 20, 0.3);
+}
+
+.event-card h3 {
+  color: var(--netflix-red);
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.event-card p {
+  color: var(--netflix-white);
+  margin-bottom: 0.8rem;
+  font-size: 0.95rem;
+}
+
+.event-card p strong {
+  color: var(--netflix-light-gray);
+  margin-right: 0.5rem;
+}
+

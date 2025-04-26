@@ -1,12 +1,123 @@
+require('dotenv').config(); // load .env at the very top
 const express = require("express");
 const mysql = require("mysql2");
 const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
+const pollRoutes = require("./routes/polls");
+const nodemailer = require('nodemailer');
+
 
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use("/api/polls", pollRoutes);
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'hariniprasad285@gmail.com',
+    pass: 'rdbrjfnutxnbooxd', // Use the 16-char App Password
+  },
+});
+
+
+// Function to set up automated event reminders
+function setupAutomaticEventReminders(db) {
+  // Check for upcoming events every 5 minutes (300000 milliseconds)
+  setInterval(() => {
+    console.log("Running event reminder check...");
+    
+    // Get current time
+    const now = new Date();
+    
+    // Calculate one hour from now
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+    
+    // Query to get all events
+    const getEventsQuery = "SELECT * FROM academic_events";
+    
+    db.query(getEventsQuery, (err, events) => {
+      if (err) {
+        console.error("Error fetching events:", err);
+        return;
+      }
+      
+      // Filter events starting in approximately one hour
+      events.forEach(event => {
+        // Parse event date and time from ISO string
+        const eventDateTime = new Date(event.date);
+        
+        if (isNaN(eventDateTime)) {
+          console.error(`Invalid date format for event "${event.title}": ${event.date}`);
+          return;
+        }
+        
+        // Calculate time difference in minutes
+        const diffMs = eventDateTime.getTime() - oneHourLater.getTime();
+        const diffMinutes = Math.round(diffMs / 60000); // Convert to minutes
+        
+        // Check if event starts in approximately one hour (within a 5-minute window)
+        if (Math.abs(diffMinutes) <= 5) {
+          console.log(`Event "${event.title}" starts in one hour. Sending reminders...`);
+          
+          // Get all registered students for this event
+          const getStudentsQuery = "SELECT student_email FROM registered_students WHERE event_registered = ?";
+          
+          db.query(getStudentsQuery, [event.title], (err, students) => {
+            if (err) {
+              console.error(`Error fetching registered students for event ${event.title}:`, err);
+              return;
+            }
+            
+            // Format date and time for email
+            const eventDate = eventDateTime.toLocaleDateString('en-US', {
+              weekday: 'long',
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+            
+            const eventTime = eventDateTime.toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            
+            // Send email to each registered student
+            students.forEach(student => {
+              const mailOptions = {
+                from: '"Auditoria" <hariniprasad285@gmail.com>',
+                to: student.student_email,
+                subject: `REMINDER: Event "${event.title}" starts in 1 hour!`,
+                html: `
+                  <h3>Hi ${student.student_email.split("@")[0].toUpperCase()},</h3>
+                  <p>This is a friendly reminder that you are registered for an event that starts in 1 hour:</p>
+                  <ul>
+                    <li><strong>Title:</strong> ${event.title}</li>
+                    <li><strong>Description:</strong> ${event.description}</li>
+                    <li><strong>Date:</strong> ${eventDate}</li>
+                    <li><strong>Time:</strong> ${eventTime}</li>
+                    <li><strong>Venue:</strong> ${event.venue}</li>
+                  </ul>
+                  <p>We look forward to seeing you there!<br><strong>Team Auditoria</strong></p>
+                `,
+              };
+              
+              transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                  console.error(`Error sending reminder to ${student.student_email}:`, error);
+                } else {
+                  console.log(`Reminder sent to ${student.student_email} for event "${event.title}"`);
+                }
+              });
+            });
+          });
+        }
+      });
+    });
+  }, 300000); // Check every 5 minutes (300000 ms)
+}
+
 
 // JWT Secret Key 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -15,7 +126,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "8125754668", // Use your actual MySQL password
+  password: "mysql", // Use your actual MySQL password
   database: "auth_db"
 });
 
@@ -25,6 +136,136 @@ db.connect((err) => {
     console.error("Error connecting to MySQL:", err);
     return;
   }
+  setupAutomaticEventReminders(db);
+
+  // Create non_academic_events table if it doesn't exist
+  const createNonAcademicEventsTable = `
+    CREATE TABLE IF NOT EXISTS nonacademic_events (
+      event_id INT AUTO_INCREMENT PRIMARY KEY,
+      movie_name VARCHAR(255) NOT NULL,
+      description TEXT,
+      venue VARCHAR(255),
+      event_date DATE,
+      image_url VARCHAR(255),
+      slot_count INT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `;
+
+  db.query(createNonAcademicEventsTable, (err) => {
+    if (err) {
+      console.error("Error creating non_academic_events table:", err);
+    } else {
+      console.log("Non-academic events table created or already exists");
+    }
+  });
+
+  // After the createNonAcademicEventsTable query
+  const alterNonAcademicEventsTable = `
+    ALTER TABLE nonacademic_events
+    MODIFY COLUMN event_id INT AUTO_INCREMENT,
+    MODIFY COLUMN movie_name VARCHAR(255) NOT NULL,
+    MODIFY COLUMN description TEXT,
+    MODIFY COLUMN venue VARCHAR(255),
+    MODIFY COLUMN event_date DATE,
+
+    MODIFY COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+  `;
+
+  db.query(alterNonAcademicEventsTable, (err) => {
+    if (err) {
+      console.error("Error altering nonacademic_events table:", err);
+    } else {
+      console.log("Nonacademic_events table altered successfully");
+    }
+  });
+
+  // Create event_slots table if it doesn't exist
+  const createEventSlotsTable = `
+    CREATE TABLE IF NOT EXISTS event_slots (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      event_id INT NOT NULL,
+      slot_time TIME NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (event_id) REFERENCES nonacademic_events(event_id) ON DELETE CASCADE
+    )
+  `;
+
+  db.query(createEventSlotsTable, (err) => {
+    if (err) {
+      console.error("Error creating event_slots table:", err);
+    } else {
+      console.log("Event slots table created or already exists");
+    }
+  });
+
+  // Create seat_bookings table if it doesn't exist
+  const createSeatBookingsTable = `
+    CREATE TABLE IF NOT EXISTS seat_bookings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      event_id INT NOT NULL,
+      slot_id INT NOT NULL,
+      user_email VARCHAR(255) NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (event_id) REFERENCES nonacademic_events(event_id) ON DELETE CASCADE,
+      FOREIGN KEY (slot_id) REFERENCES event_slots(id) ON DELETE CASCADE
+    )
+  `;
+
+  db.query(createSeatBookingsTable, (err) => {
+    if (err) {
+      console.error("Error creating seat_bookings table:", err);
+    } else {
+      console.log("Seat bookings table created or already exists");
+    }
+  });
+
+  // Create event_seats table if it doesn't exist
+  const createEventSeatsTable = `
+    CREATE TABLE IF NOT EXISTS event_seats (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      slot_id INT NOT NULL,
+      seat_number VARCHAR(10) NOT NULL,
+      is_booked BOOLEAN DEFAULT FALSE,
+      booked_by VARCHAR(255),
+      FOREIGN KEY (slot_id) REFERENCES event_slots(id) ON DELETE CASCADE,
+      UNIQUE KEY unique_seat (slot_id, seat_number)
+    )
+  `;
+
+  db.query(createEventSeatsTable, (err) => {
+    if (err) {
+      console.error("Error creating event_seats table:", err);
+    } else {
+      console.log("Event seats table created or already exists");
+    }
+  });
+
+  // Create bookings table if it doesn't exist
+  const createBookingsTable = `
+    CREATE TABLE IF NOT EXISTS bookings (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      event_id INT NOT NULL,
+      slot_id INT NOT NULL,
+    user_email VARCHAR(255) NOT NULL,
+      movie_name VARCHAR(255) NOT NULL,
+      event_date DATE NOT NULL,
+      slot_time VARCHAR(10) NOT NULL,
+      seat_numbers TEXT NOT NULL,
+      booking_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (event_id) REFERENCES nonacademic_events(event_id) ON DELETE CASCADE,
+      FOREIGN KEY (slot_id) REFERENCES event_slots(id) ON DELETE CASCADE
+    )
+  `;
+
+  db.query(createBookingsTable, (err) => {
+    if (err) {
+      console.error("Error creating bookings table:", err);
+    } else {
+      console.log("Bookings table created or already exists");
+    }
+  });
+
   console.log("MySQL Connected...");
 });
 
@@ -159,23 +400,73 @@ app.get("/protected", verifyToken, (req, res) => {
 app.post("/addEvent", (req, res) => {
   const { title, description, date, time, venue, Max_registrations } = req.body;
 
-  // Query to insert event data into the events table
-  const query = "INSERT INTO events (title, description, date, time, venue, Max_registrations) VALUES (?, ?, ?, ?, ?, ?)";
+  const insertQuery =
+    "INSERT INTO academic_events (title, description, date, time, venue, Max_registrations) VALUES (?, ?, ?, ?, ?, ?)";
 
-  db.query(query, [title, description, date, time, venue, Max_registrations], (err, result) => {
-    if (err) {
-      console.error("Error inserting event:", err);
-      return res.status(500).json({ message: "Error adding event" });
+  db.query(
+    insertQuery,
+    [title, description, date, time, venue, Max_registrations],
+    (err, result) => {
+      if (err) {
+        console.error("Error inserting event:", err);
+        return res.status(500).json({ message: "Error adding event" });
+      }
+
+      const fetchEmailsQuery = "SELECT email FROM users"; 
+
+      db.query(fetchEmailsQuery, async (emailErr, emailResults) => {
+        if (emailErr) {
+          console.error("Error fetching emails:", emailErr);
+          return res.status(500).json({
+            message: "Event added, but failed to fetch user emails",
+            eventId: result.insertId,
+          });
+        }
+
+        const emailList = emailResults.map((row) => row.email);
+
+
+        // Send emails to all users
+        for (const email of emailList) {
+          const mailOptions = {
+            from: '"Auditoria" <hariniprasad285@gmail.com>',
+            to: email,
+            subject: "New Event Announcement",
+            html: `
+              <h3>Hi ${email.split("@")[0].toUpperCase()},</h3>
+              <p>A new event has been added. Here are the details:</p>
+              <ul>
+                <li><strong>Title:</strong> ${title}</li>
+                <li><strong>Description:</strong> ${description}</li>
+                <li><strong>Date:</strong> ${date}</li>
+                <li><strong>Time:</strong> ${time}</li>
+                <li><strong>Venue:</strong> ${venue}</li>
+              </ul>
+              <p>Don't miss it!<br><strong>Team Auditoria</strong></p>
+            `,
+          };
+
+          try {
+            await transporter.sendMail(mailOptions);
+            console.log(`Email sent to ${email}`);
+          } catch (emailErr) {
+            console.error(`Error sending email to ${email}:`, emailErr);
+          }
+        }
+
+        return res.status(201).json({
+          message: "Event added and emails sent successfully",
+          eventId: result.insertId,
+        });
+      });
     }
-
-    res.status(201).json({ message: "Event added successfully", eventId: result.insertId });
-  });
+  );
 });
 
 // Add Event Retrieval API Endpoint
 app.get("/getEvents", (req, res) => {
-  // Query to retrieve all events from the events table
-  const query = "SELECT * FROM events";
+  // Query to retrieve all events from the academic_events table
+  const query = "SELECT * FROM academic_events";
 
   db.query(query, (err, results) => {
     if (err) {
@@ -193,7 +484,7 @@ app.get("/events", (req, res) => {
     SELECT 
       e.*, 
       COUNT(rs.id) AS current_registrations 
-    FROM events e 
+    FROM academic_events e 
     LEFT JOIN registered_students rs 
     ON e.title = rs.event_registered 
     GROUP BY e.id
@@ -211,8 +502,8 @@ app.get("/events", (req, res) => {
 // Delete Event API Endpoint
 app.delete("/deleteEvent/:id", (req, res) => {
   const eventId = req.params.id;
-
-  const query = "DELETE FROM events WHERE id = ?";
+  console.log(eventId);
+  const query = "DELETE FROM nonacademic_events WHERE event_id = ?";
   
   db.query(query, [eventId], (err, result) => {
     if (err) {
@@ -220,7 +511,9 @@ app.delete("/deleteEvent/:id", (req, res) => {
       return res.status(500).json({ message: "Error deleting event" });
     }
 
+    console.log(result)
     if (result.affectedRows === 0) {
+
       return res.status(404).json({ message: "Event not found" });
     }
 
@@ -231,7 +524,7 @@ app.delete("/deleteEvent/:id", (req, res) => {
 app.put("/updateEvent", (req, res) => {
   const { id, title, description, date, time, venue } = req.body;
 
-  const query = "UPDATE events SET title = ?, description = ?, date = ?, time = ?, venue = ? WHERE id = ?";
+  const query = "UPDATE academic_events SET title = ?, description = ?, date = ?, time = ?, venue = ? WHERE id = ?";
   db.query(query, [title, description, date, time, venue, id], (err, result) => {
     if (err) {
       console.error("Error updating event:", err);
@@ -243,9 +536,8 @@ app.put("/updateEvent", (req, res) => {
 
 // Register for an event API Endpoint
 app.post("/registerForEvent", (req, res) => {
-  const { userEmail, eventTitle } = req.body;
+  const { userEmail, eventTitle, eventDate, eventTime, eventVenue,eventDescription } = req.body;
 
-  // First check if user is already registered for this event
   const checkQuery = "SELECT * FROM registered_students WHERE student_email = ? AND event_registered = ?";
   db.query(checkQuery, [userEmail, eventTitle], (err, results) => {
     if (err) {
@@ -257,22 +549,57 @@ app.post("/registerForEvent", (req, res) => {
       return res.status(400).json({ message: "You are already registered for this event" });
     }
 
-    // If not registered, proceed with registration
     const insertQuery = "INSERT INTO registered_students (student_email, event_registered) VALUES (?, ?)";
-    db.query(insertQuery, [userEmail, eventTitle], (err, result) => {
+    db.query(insertQuery, [userEmail, eventTitle], async (err, result) => {
       if (err) {
         console.error("Error registering for event:", err);
         return res.status(500).json({ message: "Error registering for event" });
       }
 
-      res.status(201).json({ message: "Registered successfully!" });
+      // ✅ Setup email transporter
+      const transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+          user: 'hariniprasad285@gmail.com',
+          pass: 'rdbrjfnutxnbooxd', // Use app password if 2FA is enabled
+        },
+      });
+
+      // ✅ Compose the email
+      const mailOptions = {
+        from: '"Auditoria" <hariniprasad285@gmail.com>',
+        to: userEmail,
+        subject: 'Event Registration Confirmation',
+        html: `
+          <h3>Hi ${userEmail.split('@')[0].toUpperCase()},</h3>
+          <p>You have successfully registered for the event:</p>
+          <ul>
+                <li><strong>Title:</strong> ${eventTitle}</li>
+                <li><strong>Description:</strong> ${eventDescription}</li>
+                <li><strong>Date:</strong> ${eventDate}</li>
+                <li><strong>Time:</strong> ${eventTime}</li>
+                <li><strong>Venue:</strong> ${eventVenue}</li>
+              </ul>
+          <p>Thank you for using <strong>Auditoria</strong>.</p>
+        `,
+      };
+
+      try {
+        await transporter.sendMail(mailOptions);
+        return res.status(201).json({ message: "Registered successfully! Confirmation email sent." });
+      } catch (emailErr) {
+        console.error("Error sending confirmation email:", emailErr);
+        return res.status(201).json({ message: "Registered successfully! But failed to send confirmation email." });
+      }
     });
   });
 });
 
+
 app.post("/createAttendanceTable", (req, res) => {
   const { eventTitle } = req.body;
-  const tableName = `attendance_${eventTitle.replace(/\s+/g, "_")}`; // Replace spaces with underscores
+  // Replace all special characters with underscores
+  const tableName = `attendance_${eventTitle.replace(/[^a-zA-Z0-9]/g, "_")}`;
 
   const query = `
     CREATE TABLE IF NOT EXISTS ${tableName} (
@@ -294,7 +621,8 @@ app.post("/createAttendanceTable", (req, res) => {
 
 app.post("/markAttendance", (req, res) => {
   const { eventTitle, studentEmail, attended } = req.body;
-  const tableName = `attendance_${eventTitle.replace(/\s+/g, "_")}`;
+  // Use the same sanitization for consistency
+  const tableName = `attendance_${eventTitle.replace(/[^a-zA-Z0-9]/g, "_")}`;
 
   const query = `INSERT INTO ${tableName} (student_email, attended) VALUES (?, ?)`;
 
@@ -330,7 +658,7 @@ app.get("/getRegisteredEvents/:email", (req, res) => {
 
   const query = `
     SELECT e.* 
-    FROM events e
+    FROM academic_events e
     INNER JOIN registered_students rs ON e.title = rs.event_registered
     WHERE rs.student_email = ?
   `;
@@ -350,7 +678,7 @@ app.get("/getAttendedEvents/:email", (req, res) => {
   const userEmail = req.params.email;
 
   // First get all events
-  const getEventsQuery = "SELECT title FROM events";
+  const getEventsQuery = "SELECT title FROM academic_events";
   
   db.query(getEventsQuery, (err, events) => {
     if (err) {
@@ -610,6 +938,235 @@ app.get("/searchStudent/:eventTitle/:email", (req, res) => {
     } else {
       res.status(200).json({ found: false });
     }
+  });
+});
+
+// Add Non-Academic Event API Endpoint
+app.post("/addNonAcademicEvent", (req, res) => {
+  const { movie_name, description, venue, event_date, slots } = req.body;
+  
+  // Validate required fields
+  if (!movie_name || !event_date || !slots || !Array.isArray(slots)) {
+    return res.status(400).json({ error: 'Missing required fields or invalid slots format' });
+  }
+
+  const sql = 'INSERT INTO nonacademic_events (movie_name, description, venue, event_date, slot_count) VALUES (?, ?, ?, ?, ?)';
+  
+  db.query(sql, [movie_name, description, venue, event_date, slots.length], (err, result) => {
+    if (err) {
+      console.error('Error adding non-academic event:', err);
+      return res.status(500).json({ error: 'Error adding non-academic event' });
+    }
+
+    const eventId = result.insertId;
+    
+    // Insert slots
+    if (slots.length > 0) {
+      const slotValues = slots.map(slot => [eventId, slot.slot_time]);
+      const slotSql = 'INSERT INTO event_slots (event_id, slot_time) VALUES ?';
+      
+      db.query(slotSql, [slotValues], async (err, slotResult) => {
+        if (err) {
+          console.error('Error adding slots:', err);
+          // Rollback the event insertion if slot insertion fails
+          db.query('DELETE FROM nonacademic_events WHERE event_id = ?', [eventId]);
+          return res.status(500).json({ error: 'Error adding slots' });
+        }
+
+        // Create seats for each slot
+        try {
+          const firstSlotId = slotResult.insertId;
+          const seatLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+          const seatNumbers = Array.from({ length: 10 }, (_, i) => i + 1);
+          
+          for (let i = 0; i < slots.length; i++) {
+            const slotId = firstSlotId + i;
+            const seatValues = [];
+            
+            // Create exactly 100 seats (10x10) for each slot
+            for (const letter of seatLetters) {
+              for (const number of seatNumbers) {
+                seatValues.push([slotId, `${letter}${number}`]);
+              }
+            }
+            
+            // Insert all seats for this slot
+            await new Promise((resolve, reject) => {
+              const seatSql = 'INSERT INTO event_seats (slot_id, seat_number) VALUES ?';
+              db.query(seatSql, [seatValues], (err, result) => {
+                if (err) {
+                  console.error('Error inserting seats:', err);
+                  reject(err);
+                } else {
+                  resolve(result);
+                }
+              });
+            });
+          }
+          
+          res.json({ message: 'Non-academic event added successfully' });
+        } catch (error) {
+          console.error('Error adding seats:', error);
+          db.query('DELETE FROM nonacademic_events WHERE event_id = ?', [eventId]);
+          return res.status(500).json({ error: 'Error adding seats: ' + error.message });
+        }
+      });
+    } else {
+      res.json({ message: 'Non-academic event added successfully' });
+    }
+  });
+});
+
+// Update the getEventSeats endpoint
+app.get("/getEventSeats/:slotId", (req, res) => {
+  const slotId = req.params.slotId;
+  
+  const sql = `
+    SELECT id, seat_number, is_booked
+    FROM event_seats
+    WHERE slot_id = ?
+    ORDER BY seat_number
+  `;
+  
+  db.query(sql, [slotId], (err, results) => {
+    if (err) {
+      console.error('Error fetching seats:', err);
+      return res.status(500).json({ error: 'Error fetching seats' });
+    }
+    
+    // Add some logging
+    console.log(`Fetched ${results.length} seats for slot ${slotId}`);
+    
+    res.json({ 
+      seats: results.map(seat => ({
+        id: seat.id,
+        seat_number: seat.seat_number,
+        is_booked: Boolean(seat.is_booked)
+      }))
+    });
+  });
+});
+
+// Add endpoint to book seats
+app.post("/bookEventSeats", async (req, res) => {
+  console.log('Received booking request:', req.body);
+  
+  const { eventId, slotId, seatIds, userEmail, movieName, eventDate, slotTime, seatNumbers } = req.body;
+  
+  if (!eventId || !slotId || !seatIds || !userEmail || !Array.isArray(seatIds)) {
+    console.log('Validation failed:', { eventId, slotId, seatIds, userEmail });
+    return res.status(400).json({ 
+      error: 'Invalid booking request',
+      details: { eventId, slotId, seatIds, userEmail }
+    });
+  }
+
+  // Format the date to YYYY-MM-DD format
+  const formattedDate = new Date(eventDate).toISOString().split('T')[0];
+
+  // Update seats to booked status
+  const updateQuery = 'UPDATE event_seats SET is_booked = TRUE, booked_by = ? WHERE id IN (?) AND slot_id = ? AND is_booked = FALSE';
+  db.query(updateQuery, [userEmail, seatIds, slotId], (err, updateResult) => {
+    if (err) {
+      console.error('Error updating seats:', err);
+      return res.status(500).json({ error: 'Failed to update seats' });
+    }
+
+    // Insert booking record
+    const bookingQuery = `
+      INSERT INTO bookings (
+        event_id, 
+        slot_id, 
+        user_email, 
+        movie_name,
+        event_date,
+        slot_time,
+        seat_numbers,
+        booking_date
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+    `;
+    
+    db.query(bookingQuery, 
+      [eventId, slotId, userEmail, movieName, formattedDate, slotTime, JSON.stringify(seatNumbers)],
+      (err, bookingResult) => {
+        if (err) {
+          console.error('Error creating booking:', err);
+          // If booking fails, revert the seat updates
+          const revertQuery = 'UPDATE event_seats SET is_booked = FALSE, booked_by = NULL WHERE id IN (?) AND slot_id = ?';
+          db.query(revertQuery, [seatIds, slotId]);
+          return res.status(500).json({ error: 'Failed to create booking' });
+        }
+
+        res.json({ 
+          message: 'Booking successful',
+          bookingId: bookingResult.insertId
+        });
+      }
+    );
+  });
+});
+
+// Add endpoint to get user bookings
+app.get("/getUserBookings/:email", async (req, res) => {
+  const userEmail = req.params.email;
+  
+  const query = `
+    SELECT * FROM bookings 
+    WHERE user_email = ? 
+    ORDER BY booking_date DESC
+  `;
+  
+  try {
+    const [bookings] = await db.promise().query(query, [userEmail]);
+    res.json({ bookings });
+  } catch (error) {
+    console.error('Error fetching bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+// Get Non-Academic Events API Endpoint
+app.get("/getNonAcademicEvents", (req, res) => {
+  const query = `
+    SELECT 
+      e.*,
+      GROUP_CONCAT(CONCAT(s.id, ':', s.slot_time)) as slot_data
+    FROM nonacademic_events e
+    LEFT JOIN event_slots s ON e.event_id = s.event_id
+    GROUP BY e.event_id
+    ORDER BY e.event_date DESC
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error retrieving non-academic events:", err);
+      return res.status(500).json({ message: "Error retrieving non-academic events" });
+    }
+
+    // Format the results to include slot times and IDs as an array of objects
+    const events = results.map(event => ({
+      ...event,
+      slots: event.slot_data ? event.slot_data.split(',').map(slot => {
+        const [id, time] = slot.split(':');
+        return { id: parseInt(id), time };
+      }) : []
+    }));
+
+    res.status(200).json({ events });
+  });
+});
+
+// Debug endpoint to check table structure
+app.get('/debug/nonacademic_events', (req, res) => {
+  const query = 'DESC nonacademic_events';
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error checking table structure:', err);
+      return res.status(500).json({ error: 'Error checking table structure' });
+    }
+    
+    res.json({ table_structure: results });
   });
 });
 
