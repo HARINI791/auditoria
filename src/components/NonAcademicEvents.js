@@ -184,7 +184,8 @@ const NonAcademicEvents = () => {
         time: selectedSlotTime,
         seats: selectedSeatNumbers,
         email: userEmail,
-        bookingId: data.bookingId
+        bookingId: data.bookingId,
+        amount: selectedSeats.length * 200
       });
 
       // Show success message and confirmation
@@ -426,40 +427,37 @@ const NonAcademicEvents = () => {
 
       {showBookingConfirmation && bookingConfirmationDetails && (
         <div className="modal-overlay">
-          <div className="booking-confirmation-modal">
-            <div className="confirmation-header">
-              <div className="booking-success-icon">✓</div>
-              <h2>Booking Confirmed!</h2>
-              <p>Your tickets have been booked successfully</p>
+          <div className="booking-confirmation-modal netflix-ticket">
+            <div className="ticket-header">
+              <span className="ticket-logo">🎬</span>
+              <h2>Ticket Confirmed</h2>
             </div>
-
-            <div className="confirmation-details">
-              <div className="movie-details">
-                <h3>{bookingConfirmationDetails.movieName}</h3>
-                <p className="booking-id">Booking ID: #{bookingConfirmationDetails.bookingId}</p>
-              </div>
-
-              <div className="details-grid">
-                <div className="detail-item">
-                  <span className="detail-label">Show Date</span>
-                  <span className="detail-value">{formatDate(bookingConfirmationDetails.date)}</span>
+            <div className="ticket-body">
+              <div className="ticket-movie">{bookingConfirmationDetails.movieName}</div>
+              <div className="ticket-details">
+                <div>
+                  <span className="ticket-label">Date</span>
+                  <span className="ticket-value">{formatDate(bookingConfirmationDetails.date)}</span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Show Time</span>
-                  <span className="detail-value">{bookingConfirmationDetails.time}</span>
+                <div>
+                  <span className="ticket-label">Time</span>
+                  <span className="ticket-value">{bookingConfirmationDetails.time}</span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Selected Seats</span>
-                  <span className="detail-value">{bookingConfirmationDetails.seats.join(', ')}</span>
+                <div>
+                  <span className="ticket-label">Seats</span>
+                  <span className="ticket-value">{bookingConfirmationDetails.seats.join(', ')}</span>
                 </div>
-                <div className="detail-item">
-                  <span className="detail-label">Email</span>
-                  <span className="detail-value">{bookingConfirmationDetails.email}</span>
+                <div>
+                  <span className="ticket-label">Email</span>
+                  <span className="ticket-value">{bookingConfirmationDetails.email}</span>
+                </div>
+                <div>
+                  <span className="ticket-label">Booking ID</span>
+                  <span className="ticket-value ticket-id">#{bookingConfirmationDetails.bookingId}</span>
                 </div>
               </div>
             </div>
-
-            <div className="confirmation-actions">
+            <div className="ticket-actions">
               <button 
                 className="view-bookings-btn"
                 onClick={() => {

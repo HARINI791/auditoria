@@ -16,8 +16,8 @@ app.use("/api/polls", pollRoutes);
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'hariniprasad285@gmail.com',
-    pass: 'rdbrjfnutxnbooxd', // Use the 16-char App Password
+    user: 'auditorianzd@gmail.com',
+    pass: 'ckklhpwclaqvtvbw', // Use the 16-char App Password
   },
 });
 
@@ -266,6 +266,25 @@ db.connect((err) => {
     }
   });
 
+  const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS event_doubts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            event_id INT NOT NULL,
+            user_name VARCHAR(100),
+            doubt_text TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (event_id) REFERENCES academic_events(id) ON DELETE CASCADE
+        )
+    `;
+
+    db.query(createTableQuery, (err, result) => {
+        if (err) {
+            console.error(" Failed to initialize event_doubts table:", err);
+        } else {
+            console.log("event_doubts table is ready (created if not existed)");
+        }
+    });
+
   console.log("MySQL Connected...");
 });
 
@@ -429,7 +448,7 @@ app.post("/addEvent", (req, res) => {
         // Send emails to all users
         for (const email of emailList) {
           const mailOptions = {
-            from: '"Auditoria" <hariniprasad285@gmail.com>',
+            from: '"Auditoria" <auditorianzd@gmail.com>',
             to: email,
             subject: "New Event Announcement",
             html: `
@@ -500,7 +519,152 @@ app.get("/events", (req, res) => {
 });
 
 // Delete Event API Endpoint
-app.delete("/deleteEvent/:id", (req, res) => {
+app.delete("/deleteAcademincEvent/:id", (req, res) => {
+  const eventId = req.params.id;
+  console.log(eventId);
+  const query = "DELETE FROM academic_events WHERE id = ?";
+  
+  db.query(query, [eventId], (err, result) => {
+    if (err) {
+      console.error("Error deleting event:", err);
+      return res.status(500).json({ message: "Error deleting event" });
+    }
+
+    console.log(result)
+    if (result.affectedRows === 0) {
+
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    res.status(200).json({ message: "Event deleted successfully" });
+  });
+});
+
+app.post('/events/:eventId/doubts', (req, res) => {
+  const { eventId } = req.params;
+  const { doubt_text, user_name } = req.body;
+
+  if (!doubt_text) {
+      return res.status(400).json({ error: "Doubt text is required" });
+  }
+
+  const query = `
+      INSERT INTO event_doubts (event_id, doubt_text, user_name)
+      VALUES (?, ?, ?)
+  `;
+
+  db.query(query, [eventId, doubt_text, user_name || null], (err, result) => {
+      if (err) {
+          console.error("Error inserting doubt:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      res.status(201).json({ message: "Doubt submitted successfully" });
+  });
+});
+
+app.get('/events/:eventId/doubts', (req, res) => {
+  const { eventId } = req.params;
+
+  const query = `
+      SELECT id, user_name, doubt_text, created_at
+      FROM event_doubts
+      WHERE event_id = ?
+      ORDER BY created_at DESC
+  `;
+
+  db.query(query, [eventId], (err, results) => {
+      if (err) {
+          console.error("Error fetching doubts:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      res.status(200).json(results);
+  });
+});
+
+
+
+app.post('/sendEventNotification/:eventId', (req, res) => {
+  const eventId = req.params.eventId;
+
+  // Get event details by ID
+  const eventQuery = 'SELECT * FROM academic_events WHERE id = ?';
+  db.query(eventQuery, [eventId], (err, eventResult) => {
+    if (err) {
+      console.error("Error fetching event:", err);
+      return res.status(500).json({ message: "Error fetching event" });
+    }
+
+    if (eventResult.length === 0) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const event = eventResult[0];
+
+    // Match students by event title
+    const studentsQuery = `
+      SELECT DISTINCT student_email 
+      FROM registered_students
+      WHERE event_registered = ?
+    `;
+    db.query(studentsQuery, [event.title], (err, students) => {
+      if (err) {
+        console.error("Error fetching students:", err);
+        return res.status(500).json({ message: "Error fetching registered students" });
+      }
+
+      if (students.length === 0) {
+        return res.status(400).json({ message: "No registered students found for this event" });
+      }
+
+      // Send emails to each student
+      let successCount = 0;
+      let failedCount = 0;
+
+      students.forEach((student, index) => {
+        const mailOptions = {
+          from: process.env.EMAIL_USER,
+          to: student.student_email, // updated to use correct field
+          subject: `Event Starting Soon: ${event.title}`,
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #e50914;">Event Starting Soon!</h2>
+              <p>Hello Student,</p>
+              <p>This is a reminder that the event you registered for is about to start:</p>
+              <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                <h3 style="color: #333; margin-top: 0;">${event.title}</h3>
+                <p><strong>Date:</strong> ${new Date(event.date).toLocaleDateString()}</p>
+                <p><strong>Time:</strong> ${event.time}</p>
+                <p><strong>Venue:</strong> ${event.venue}</p>
+                <p><strong>Description:</strong> ${event.description}</p>
+              </div>
+              <p>Please join the event on time. We look forward to seeing you there!</p>
+              <p>Best regards,<br>The Event Management Team</p>
+            </div>
+          `
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+          if (err) {
+            console.error(`Failed to send email to ${student.student_email}:`, err);
+            failedCount++;
+          } else {
+            successCount++;
+          }
+
+          // Final response after all emails processed
+          if (successCount + failedCount === students.length) {
+            res.status(200).json({
+              message: `Notifications sent. Success: ${successCount}, Failed: ${failedCount}`
+            });
+          }
+        });
+      });
+    });
+  });
+});
+
+
+app.delete("/deleteNonAcademicEvent/:id", (req, res) => {
   const eventId = req.params.id;
   console.log(eventId);
   const query = "DELETE FROM nonacademic_events WHERE event_id = ?";
@@ -522,16 +686,25 @@ app.delete("/deleteEvent/:id", (req, res) => {
 });
 
 app.put("/updateEvent", (req, res) => {
-  const { id, title, description, date, time, venue } = req.body;
+  const { id, title, description, date, time, venue, Max_registrations, session_link } = req.body;
 
-  const query = "UPDATE academic_events SET title = ?, description = ?, date = ?, time = ?, venue = ? WHERE id = ?";
-  db.query(query, [title, description, date, time, venue, id], (err, result) => {
-    if (err) {
-      console.error("Error updating event:", err);
-      return res.status(500).json({ message: "Error updating event" });
+  const query = `
+    UPDATE academic_events
+    SET title = ?, description = ?, date = ?, time = ?, venue = ?, Max_registrations = ?, session_link = ?
+    WHERE id = ?
+  `;
+
+  db.query(
+    query,
+    [title, description, date, time, venue, Max_registrations, session_link, id],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating event:", err);
+        return res.status(500).json({ message: "Error updating event" });
+      }
+      res.status(200).json({ message: "Event updated successfully" });
     }
-    res.status(200).json({ message: "Event updated successfully" });
-  });
+  );
 });
 
 // Register for an event API Endpoint
@@ -556,15 +729,7 @@ app.post("/registerForEvent", (req, res) => {
         return res.status(500).json({ message: "Error registering for event" });
       }
 
-      // ✅ Setup email transporter
-      const transporter = nodemailer.createTransport({
-        service: 'Gmail',
-        auth: {
-          user: 'hariniprasad285@gmail.com',
-          pass: 'rdbrjfnutxnbooxd', // Use app password if 2FA is enabled
-        },
-      });
-
+     
       // ✅ Compose the email
       const mailOptions = {
         from: '"Auditoria" <hariniprasad285@gmail.com>',
@@ -1168,6 +1333,44 @@ app.get('/debug/nonacademic_events', (req, res) => {
     
     res.json({ table_structure: results });
   });
+});
+
+app.get('/api/generateAttendanceToken', (req, res) => {
+  const { eventId, slotId } = req.query;
+  if (!eventId || !slotId) {
+    return res.status(400).json({ error: 'Missing eventId or slotId' });
+  }
+  const payload = {
+    eventId,
+    slotId,
+    ts: Math.floor(Date.now() / 10000)
+  };
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '15s' });
+  res.json({ token });
+});
+
+app.post('/api/markAttendance', (req, res) => {
+  const { token, studentEmail, eventTitle } = req.body;
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    // Use eventTitle or payload.eventId to determine the table
+    const tableName = `attendance_${eventTitle.replace(/[^a-zA-Z0-9]/g, "_")}`;
+    // Mark attendance in the correct table
+    db.query(
+      `INSERT INTO ${tableName} (student_email, attended) VALUES (?, TRUE)
+       ON DUPLICATE KEY UPDATE attended=TRUE`,
+      [studentEmail],
+      (err) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).json({ message: "Failed to mark attendance" });
+        }
+        res.json({ message: "Attendance marked successfully!" });
+      }
+    );
+  } catch (err) {
+    res.status(400).json({ message: "Invalid or expired QR code." });
+  }
 });
 
 // Server Listening

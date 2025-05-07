@@ -420,4 +420,73 @@ body {
     }
   }
   
+  .filter-container {
+    position: relative;
+    margin-left: 1rem;
+  }
+  
+  .filter-button {
+    background: transparent;
+    color: var(--netflix-white);
+    border: 1px solid var(--netflix-light-gray);
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    font-size: 1rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .filter-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--netflix-red);
+  }
+  
+  .filter-icon {
+    font-size: 1rem;
+    color: var(--netflix-red);
+  }
+  
+  .filter-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--netflix-dark-gray);
+    border: 1px solid var(--netflix-light-gray);
+    border-radius: 4px;
+    margin-top: 0.5rem;
+    min-width: 150px;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .filter-container:hover .filter-dropdown {
+    display: block;
+  }
+  
+  .filter-option {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    background: transparent;
+    color: var(--netflix-white);
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--transition-speed);
+    font-size: 0.9rem;
+  }
+  
+  .filter-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .filter-option.active {
+    background: var(--netflix-red);
+    color: var(--netflix-white);
+  }
+  
   

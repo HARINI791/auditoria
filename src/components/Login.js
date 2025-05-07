@@ -109,7 +109,6 @@ const Login = ({ switchToRegister }) => {
       </span>
     </p>
 
-    <ToastContainer/>
      
    
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUser, FaTicketAlt, FaPoll, FaCommentAlt, FaCheckCircle, FaThumbsUp, FaThumbsDown } from 'react-icons/fa';
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaUser, FaTicketAlt, FaPoll, FaCommentAlt, FaCheckCircle, FaThumbsUp, FaThumbsDown, FaQuestionCircle } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -14,6 +14,10 @@ const StudentProfile = () => {
   const [existingFeedback, setExistingFeedback] = useState({});
   const [eventsPoll, setEventsPoll] = useState([]);
   const [userInterests, setUserInterests] = useState({});
+  const [showDoubtModal, setShowDoubtModal] = useState(false);
+  const [currentEvent, setCurrentEvent] = useState(null);
+  const [doubtText, setDoubtText] = useState('');
+  const [isSubmittingDoubt, setIsSubmittingDoubt] = useState(false);
   const userEmail = useSelector((state) => state.email.userEmail);
 
   useEffect(() => {
@@ -193,6 +197,57 @@ const StudentProfile = () => {
     }
   };
 
+  // Handle opening the doubt modal
+  const openDoubtModal = (event) => {
+    setCurrentEvent(event);
+    setDoubtText('');
+    setShowDoubtModal(true);
+  };
+
+  // Handle closing the doubt modal
+  const closeDoubtModal = () => {
+    setShowDoubtModal(false);
+    setCurrentEvent(null);
+    setDoubtText('');
+  };
+
+  // Handle submitting a doubt
+  const handleDoubtSubmit = async () => {
+    if (!doubtText.trim()) {
+      toast.error('Please enter your doubt before submitting');
+      return;
+    }
+
+    setIsSubmittingDoubt(true);
+
+    try {
+      const response = await fetch(`http://localhost:5000/events/${currentEvent.id}/doubts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_name:userEmail,
+          doubt_text: doubtText
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast.success(data.message || 'Doubt submitted successfully!');
+        closeDoubtModal();
+      } else {
+        toast.error(data.message || 'Error submitting doubt');
+      }
+    } catch (error) {
+      console.error('Error submitting doubt:', error);
+      toast.error('Failed to submit doubt. Please try again.');
+    } finally {
+      setIsSubmittingDoubt(false);
+    }
+  };
+
   if (!userEmail) {
     return (
       <div className="profile-container">
@@ -241,6 +296,14 @@ const StudentProfile = () => {
                         <span>{event.venue}</span>
                       </div>
                     </div>
+                    <button 
+                      className="ask-doubt-button"
+                      onClick={() => {
+                        openDoubtModal(event)
+                      }}
+                    >
+                      <FaQuestionCircle /> Ask Doubt
+                    </button>
                   </div>
                 ))}
               </div>
@@ -384,9 +447,39 @@ const StudentProfile = () => {
       </div>
 
       {renderContent()}
-      <ToastContainer />
+
+      {/* Doubt Modal */}
+      {showDoubtModal && (
+        <div className="modal-overlay">
+          <div className="doubt-modal">
+            <div className="doubt-modal-header">
+              <h2>Ask Doubt: {currentEvent?.title}</h2>
+              <button className="close-button" onClick={closeDoubtModal}>×</button>
+            </div>
+            <div className="doubt-modal-body">
+              <textarea
+                className="doubt-input"
+                placeholder="Type your doubt or question here..."
+                value={doubtText}
+                onChange={(e) => setDoubtText(e.target.value)}
+              />
+            </div>
+            <div className="doubt-modal-footer">
+              <button className="cancel-button" onClick={closeDoubtModal}>Cancel</button>
+              <button 
+                className="submit-button" 
+                onClick={handleDoubtSubmit}
+                disabled={isSubmittingDoubt}
+              >
+                {isSubmittingDoubt ? 'Submitting...' : 'Submit Doubt'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
 
-export default StudentProfile; 
+export default StudentProfile;

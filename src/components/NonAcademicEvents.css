@@ -1156,6 +1156,7 @@
 .seat-button.booked {
   background: #ff0000;
   border-color: #ff0000;
+  cursor: not-allowed;
 }
 
 /* Screen */
@@ -1212,167 +1213,146 @@
   cursor: not-allowed;
 }
 
-/* Update Booking Confirmation Modal Styles */
-.booking-confirmation-modal {
-  background: #1a1a1a;
-  padding: 2.5rem;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 500px;
-  position: relative;
-  animation: modalFadeIn 0.3s ease;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  overflow-y: auto;
-}
-
-.confirmation-header {
-  text-align: center;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.confirmation-header h2 {
-  color: #e50914;
-  font-size: 2rem;
-  margin: 1rem 0 0.5rem;
-}
-
-.confirmation-header p {
-  color: #888;
-  font-size: 1rem;
-}
-
-.booking-success-icon {
-  width: 64px;
-  height: 64px;
-  background: #e50914;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* Netflix Ticket Modal */
+.netflix-ticket {
+  background: linear-gradient(135deg, #181818 80%, #e50914 100%);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px rgba(229, 9, 20, 0.15), 0 1.5px 0 #e50914 inset;
+  padding: 0;
+  max-width: 420px;
   margin: 0 auto;
+  overflow: hidden;
+  font-family: 'Netflix Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  border: 2px solid #e50914;
+  animation: modalFadeIn 0.3s cubic-bezier(.4,2,.6,1);
+}
+
+.ticket-header {
+  background: #e50914;
   color: #fff;
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.confirmation-details {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.movie-details {
   text-align: center;
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1.5rem 1rem 1rem 1rem;
+  border-bottom: 2px dashed #fff2;
+  position: relative;
 }
 
-.movie-details h3 {
-  color: #fff;
-  font-size: 1.6rem;
+.ticket-logo {
+  font-size: 2.2rem;
+  display: block;
   margin-bottom: 0.5rem;
 }
 
-.booking-id {
-  color: #888;
-  font-size: 0.9rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
+.ticket-header h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.ticket-body {
+  padding: 2rem 1.5rem 1.5rem 1.5rem;
+  background: #181818;
+}
+
+.ticket-movie {
+  color: #fff;
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1.2rem;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px #000a;
+}
+
+.ticket-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem 0.7rem;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-label {
+  color: #e50914;
+  font-size: 0.92rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.ticket-value {
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 500;
+  margin-top: 0.1rem;
+  word-break: break-all;
+}
+
+.ticket-id {
+  background: #e50914;
+  color: #fff;
+  border-radius: 12px;
+  padding: 0.2rem 0.7rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: 1px;
   display: inline-block;
 }
 
-.details-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-}
-
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.detail-label {
-  color: #888;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.detail-value {
-  color: #fff;
-  font-size: 1.1rem;
-  font-weight: 500;
-}
-
-.confirmation-actions {
+.ticket-actions {
   display: flex;
   gap: 1rem;
-  margin-top: 2rem;
+  background: #181818;
+  padding: 1.2rem 1.5rem 1.5rem 1.5rem;
+  border-top: 2px dashed #fff2;
 }
 
 .view-bookings-btn,
 .close-btn {
   flex: 1;
-  padding: 1rem;
+  padding: 0.9rem 0;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .view-bookings-btn {
   background: #e50914;
   color: #fff;
+  box-shadow: 0 2px 8px #e5091440;
 }
 
 .close-btn {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: #fff;
+  color: #e50914;
+  border: 1.5px solid #e50914;
 }
 
 .view-bookings-btn:hover {
-  background: #f40612;
-  transform: translateY(-2px);
+  background: #b0060f;
 }
 
 .close-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #e50914;
+  color: #fff;
 }
 
-@keyframes modalFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
+@media (max-width: 600px) {
+  .netflix-ticket {
+    max-width: 98vw;
+    border-radius: 10px;
   }
-  to {
-    opacity: 1;
-    transform: scale(1);
+  .ticket-body, .ticket-actions {
+    padding: 1rem;
   }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .booking-confirmation-modal {
-    width: 95%;
-    padding: 1.5rem;
-  }
-
-  .details-grid {
+  .ticket-details {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.7rem 0;
   }
-
-  .confirmation-actions {
-    flex-direction: column;
-  }
-} 
+}

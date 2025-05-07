@@ -6,6 +6,7 @@ import './AdminPanel.css';
 import './AttendanceSearch.css';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from './AuthSlice';
+import { QRCodeCanvas } from 'qrcode.react';
 
 const AdminPanel = () => {
   const dispatch = useDispatch();
@@ -48,14 +49,21 @@ const AdminPanel = () => {
     date: "",
     time: "",
     venue: "",
-    Max_registrations: ""
+    Max_registrations: "",
+    session_link: ""
   });
 
   const [registeredStudents, setRegisteredStudents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [attendance, setAttendance] = useState({});
   const [eventToDelete, setEventToDelete] = useState(null);
+  const [nonAcademicEventToDelete, setNonAcademicEventToDelete] = useState(null);
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [showDoubts, setShowDoubts] = useState(false);
+  const [selectedEventDoubts, setSelectedEventDoubts] = useState([]);
+  const [selectedEventForDoubts, setSelectedEventForDoubts] = useState(null);
+  const [isSendingNotification, setIsSendingNotification] = useState(false);
+  
 
   const [eventTitle, setEventTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -76,6 +84,12 @@ const AdminPanel = () => {
   const [academicScrollPosition, setAcademicScrollPosition] = useState(0);
   const [nonAcademicScrollPosition, setNonAcademicScrollPosition] = useState(0);
 
+  const [qrEvent, setQrEvent] = useState(null);
+  const [qrToken, setQrToken] = useState('');
+  const [qrLoading, setQrLoading] = useState(false);
+
+  const [deletingEventId, setDeletingEventId] = useState(null);
+
   // Reset form data
   const resetForm = () => {
     setEventData({
@@ -84,7 +98,8 @@ const AdminPanel = () => {
       date: "",
       time: "",
       venue: "",
-      Max_registrations: ""
+      Max_registrations: "",
+      session_link: ""
     });
     setIsFormVisible(false);
     setIsEditing(false);
@@ -145,61 +160,100 @@ const AdminPanel = () => {
     return `${formattedHour}:${minutes} ${ampm}`;
   };
 
+  const [isSubmittingEvent, setIsSubmittingEvent] = useState(false);
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmittingEvent(true);
+    if (isEditing) {
+      try {
+        const response = await fetch("http://localhost:5000/updateEvent", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: editEventId,
+            ...eventData,
+          }),
+        });
+        const result = await response.json();
 
-    // Validate form data
-    if (!eventData.title?.trim() || !eventData.description?.trim() || !eventData.date || 
-        !eventData.time || !eventData.venue?.trim() || !eventData.Max_registrations) {
-      toast.error("Please fill in all fields", {
-        autoClose: 1000,
-        hideProgressBar: true
-      });
-      return;
-    }
-
-    try {
-      const formattedEventData = {
-        ...eventData,
-        Max_registrations: parseInt(eventData.Max_registrations) || 0
-      };
-
-      const response = await fetch("http://localhost:5000/addEvent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formattedEventData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Failed to add event");
+        if (response.ok) {
+          // Update the event in the local state
+          setEvents(events.map(event =>
+            event.id === editEventId ? { ...event, ...eventData } : event
+          ));
+          setIsEditing(false);
+          setIsFormVisible(false);
+          setEventData({
+            title: "",
+            description: "",
+            date: "",
+            time: "",
+            venue: "",
+            Max_registrations: "",
+            session_link: ""
+          });
+          toast.success("Event updated successfully");
+        } else {
+          toast.error(result.message || "Error updating event");
+        }
+      } catch (error) {
+        toast.error("Error occurred during event update");
+      }
+    } else {
+      // Validate form data
+      if (!eventData.title?.trim() || !eventData.description?.trim() || !eventData.date || 
+          !eventData.time || !eventData.venue?.trim() || !eventData.Max_registrations) {
+        toast.error("Please fill in all fields", {
+          autoClose: 1000,
+          hideProgressBar: true
+        });
+        return;
       }
 
-      // Create a new event object
-      const newEvent = {
-        ...formattedEventData,
-        id: result.id || Date.now()
-      };
+      try {
+        const formattedEventData = {
+          ...eventData,
+          Max_registrations: parseInt(eventData.Max_registrations) || 0
+        };
 
-      // Update events list
-      setEvents(prevEvents => [...prevEvents, newEvent]);
-      resetForm();
-      
-      // Single toast for success
-      toast.success("Event added successfully", {
-        autoClose: 1000,
-        hideProgressBar: true
-      });
-    } catch (error) {
-      console.error("Error adding event:", error);
-      toast.error(error.message || "Error adding event", {
-        autoClose: 1000,
-        hideProgressBar: true
-      });
+        const response = await fetch("http://localhost:5000/addEvent", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formattedEventData),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to add event");
+        }
+
+        // Create a new event object
+        const newEvent = {
+          ...formattedEventData,
+          id: result.id || Date.now()
+        };
+
+        // Update events list
+        setEvents(prevEvents => [...prevEvents, newEvent]);
+        resetForm();
+        
+        // Single toast for success
+        toast.success("Event added successfully", {
+          autoClose: 1000,
+          hideProgressBar: true
+        });
+      } catch (error) {
+        console.error("Error adding event:", error);
+        toast.error(error.message || "Error adding event", {
+          autoClose: 1000,
+          hideProgressBar: true
+        });
+      }
     }
+    setIsSubmittingEvent(false);
   };
 
   const handleEdit = (event) => {
@@ -213,18 +267,24 @@ const AdminPanel = () => {
       time: event.time,
       venue: event.venue,
       Max_registrations: event.Max_registrations,
+      session_link: event.session_link || ""
     });
   };
 
-  const handleDeleteClick = (eventId) => {
+  const handleAcademicEventDeleteClick = (eventId) => {
     setEventToDelete(eventId);
   };
 
-  const handleDelete = async () => {
+  const handleNonAcademicEventDeleteClick = (eventId) => {
+    setNonAcademicEventToDelete(eventId);
+  };
+
+  const handleDeleteAcademicEvent = async () => {
     if (!eventToDelete) return;
 
+    setDeletingEventId(eventToDelete); // Start animation
     try {
-      const response = await fetch(`http://localhost:5000/deleteEvent/${eventToDelete}`, {
+      const response = await fetch(`http://localhost:5000/deleteAcademincEvent/${eventToDelete}`, {
         method: "DELETE",
       });
 
@@ -246,6 +306,37 @@ const AdminPanel = () => {
       toast.error("Failed to delete event");
     }
     setEventToDelete(null);
+    setDeletingEventId(null);
+  };
+
+  const handleDeleteNonAcademicEvent = async () => {
+    if (!nonAcademicEventToDelete) return;
+
+    setDeletingEventId(nonAcademicEventToDelete); // Start animation
+    try {
+      const response = await fetch(`http://localhost:5000/deleteNonAcademicEvent/${nonAcademicEventToDelete}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success(data.message);
+        // Refresh events list
+        const eventsResponse = await fetch("http://localhost:5000/events");
+        const eventsData = await eventsResponse.json();
+        if (eventsData.events) {
+          setEvents(eventsData.events);
+        }
+      } else {
+        toast.error(data.message);
+      }
+      fetchEvents();
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      toast.error("Failed to delete event");
+    }
+    setNonAcademicEventToDelete(null);
+    setDeletingEventId(null);
   };
 
   const handleInputChange = (e) => {
@@ -499,6 +590,63 @@ const AdminPanel = () => {
     setNonAcademicScrollPosition(newPosition);
   };
 
+  const handleGenerateQR = async (event) => {
+    setQrEvent(event);
+    setQrLoading(true);
+    try {
+      const res = await fetch(`http://localhost:5000/api/generateAttendanceToken?eventId=${event.id}&slotId=1`);
+      const data = await res.json();
+      setQrToken(data.token);
+    } catch (err) {
+      setQrToken('');
+      alert('Failed to generate QR');
+    }
+    setQrLoading(false);
+  };
+
+  const handleShowDoubts = async (event) => {
+    try {
+      const response = await fetch(`http://localhost:5000/events/${event.id}/doubts`);
+      const data = await response.json();
+      if (response.ok) {
+        setSelectedEventDoubts(data);
+        setSelectedEventForDoubts(event);
+        setShowDoubts(true);
+      } else {
+        toast.error("Failed to fetch doubts");
+      }
+    } catch (error) {
+      console.error("Error fetching doubts:", error);
+      toast.error("Error fetching doubts");
+    }
+  };
+
+  const [notificationSendingEventId, setNotificationSendingEventId] = useState("");
+  const handleSendNotification = async (event) => {
+    setIsSendingNotification(true);
+    setNotificationSendingEventId(event.id);
+    try {
+      const response = await fetch(`http://localhost:5000/sendEventNotification/${event.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        toast.success("Notification sent successfully to all registered students");
+      } else {
+        toast.error(data.message || "Failed to send notification");
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+      toast.error("Error sending notification");
+    }
+    setNotificationSendingEventId("");
+    setIsSendingNotification(false);
+  };
+
   return (
     <>
       {isAuthenticated && userType === 'admin' ? (
@@ -612,6 +760,19 @@ const AdminPanel = () => {
                   />
                 </div>
                 <div className="form-group">
+                  <label htmlFor="session_link">Live/Recorded Session Link (optional)</label>
+                  <input
+                    type="url"
+                    id="session_link"
+                    name="session_link"
+                    value={eventData.session_link}
+                    onChange={handleInputChange}
+                    placeholder="Paste session link here"
+                  />
+                </div>
+              </div>
+              <div className="form-row">
+                <div className="form-group">
                   <label htmlFor="Max_registrations">Max Registrations</label>
                   <input
                     type="number"
@@ -625,7 +786,7 @@ const AdminPanel = () => {
                   />
                 </div>
               </div>
-              <button type="submit" className="academic-submit-button">
+              <button disabled={isSubmittingEvent} type="submit" className="academic-submit-button">
                 {isEditing ? "Update Event" : "Add Event"}
               </button>
             </form>
@@ -767,26 +928,81 @@ const AdminPanel = () => {
                   {Array.isArray(events) && events.length > 0 ? (
                     events.map((event) =>
                       event ? (
-                        <div key={event.id} className="event-card">
-                          <h3>{event.title}</h3>
+                        <div
+                          key={event.id}
+                          className={`event-card${deletingEventId === event.id ? " deleting" : ""}`}
+                        >
+                          <div className="event-card-header">
+                            <h3>{event.title}</h3>
+                            <div className="event-card-actions">
+                              <button 
+                                onClick={() => handleEdit(event)} 
+                                className="edit-icon-button"
+                                title="Edit Event"
+                              >
+                                <svg viewBox="0 0 24 24">
+                                  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                </svg>
+                              </button>
+                              <button 
+                                onClick={() => handleAcademicEventDeleteClick(event.id)} 
+                                className="delete-icon-button"
+                                title="Delete Event"
+                              >
+                                <svg viewBox="0 0 24 24">
+                                  <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
                           <p><strong>Date:</strong> {formatDate(event.date)}</p>
                           <p><strong>Time:</strong> {formatTime(event.time)}</p>
                           <p><strong>Location:</strong> {event.venue}</p>
+                          {event.session_link && (
+                            <p>
+                              <strong>Session Link:</strong>{" "}
+                              <a href={event.session_link} target="_blank" rel="noopener noreferrer">
+                                {event.session_link}
+                              </a>
+                            </p>
+                          )}
                           <div className="event-description">
                             <p>{event.description}</p>
                           </div>
                           <div className="event-actions">
-                            <div className="edit-delete-buttons">
-                              <button onClick={() => handleEdit(event)} className="edit-event-button">
-                                <span className="button-icon"></span> EDIT
-                              </button>
-                              <button onClick={() => handleDeleteClick(event.id)} className="delete-event-button">
-                                <span className="button-icon"></span> DELETE
-                              </button>
-                            </div>
                             <button onClick={() => handleAttendance(event.title)} className="attendance-button">
                               <span className="button-icon"></span> MANAGE ATTENDANCE
                             </button>
+                            <button onClick={() => handleGenerateQR(event)} className="generate-qr-button">
+                              <span className="button-icon">
+                                <svg viewBox="0 0 24 24">
+                                  <path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 13h8v8h-8v-8zm6 6h-4v-4h4v4z"/>
+                                </svg>
+                              </span>
+                              Generate QR
+                            </button>
+                            <div className="notification-doubts-container">
+                              <button onClick={() => handleShowDoubts(event)} className="show-doubts-button">
+                                <span className="button-icon">
+                                  <svg viewBox="0 0 24 24">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                                  </svg>
+                                </span>
+                                Show Doubts
+                              </button>
+                              <button 
+                                onClick={() => handleSendNotification(event)} 
+                                className="send-notification-button"
+                                disabled={isSendingNotification && event.id === notificationSendingEventId}
+                              >
+                                <span className="button-icon">
+                                  <svg viewBox="0 0 24 24">
+                                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                                  </svg>
+                                </span>
+                                {isSendingNotification && event.id === notificationSendingEventId ? "Sending..." : "Send Notification"}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ) : null
@@ -820,19 +1036,20 @@ const AdminPanel = () => {
                   {Array.isArray(nonAcademicEvents) && nonAcademicEvents.length > 0 ? (
                     nonAcademicEvents.map((event) =>
                       event ? (
-                        <div key={event.event_id} className="event-card">
+                        <div
+                          key={event.event_id}
+                          className={`event-card${deletingEventId === event.event_id ? " deleting" : ""}`}
+                        >
                           <h3>{event.movie_name}</h3>
                           <p><strong>Date:</strong> {formatDate(event.event_date)}</p>
                           <p><strong>Venue:</strong> {event.venue}</p>
                           <div className="event-description">
                             <p>{event.description}</p>
                           </div>
-                          <div className="time-slots">
-                            <p><strong>Time Slots:</strong> {event.slot_times?.join(', ') || 'No slots available'}</p>
-                          </div>
+                          
                           <div className="event-actions">
                             <div className="edit-delete-buttons">
-                              <button onClick={() => handleDeleteClick(event.event_id)} className="delete-event-button">
+                              <button onClick={() => handleNonAcademicEventDeleteClick(event.event_id)} className="delete-event-button">
                                 <span className="button-icon"></span> DELETE
                               </button>
                             </div>
@@ -934,7 +1151,7 @@ const AdminPanel = () => {
                   </button>
                   <button 
                     className="delete-modal-confirm"
-                    onClick={handleDelete}
+                    onClick={handleDeleteAcademicEvent}
                   >
                     Delete
                   </button>
@@ -942,9 +1159,82 @@ const AdminPanel = () => {
               </div>
             </div>
           )}
+
+          {nonAcademicEventToDelete && (
+            <div className="delete-modal-overlay">
+              <div className="delete-modal">
+                <h3>Confirm Delete</h3>
+                <p>Are you sure you want to delete this event? This action cannot be undone.</p>
+                <div className="delete-modal-buttons">
+                  <button 
+                    className="delete-modal-cancel"
+                    onClick={() => setEventToDelete(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    className="delete-modal-confirm"
+                    onClick={handleDeleteNonAcademicEvent}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {qrEvent && (
+            <div className="modal-overlay">
+              <div className="qr-modal">
+                <h3>Scan to Mark Attendance for {qrEvent.title || qrEvent.movie_name}</h3>
+                {qrLoading ? (
+                  <p>Loading QR...</p>
+                ) : (
+                  qrToken && <QRCodeCanvas value={qrToken} size={256} />
+                )}
+                <button onClick={() => setQrEvent(null)} className="close-modal-btn">Close</button>
+              </div>
+            </div>
+          )}
+
+          {showDoubts && (
+            <div className="modal-overlay">
+              <div className="doubts-modal">
+                <div className="doubts-modal-content">
+                  <h2>Doubts for {selectedEventForDoubts?.title}</h2>
+                  <button 
+                    className="close-doubts-button"
+                    onClick={() => {
+                      setShowDoubts(false);
+                      setSelectedEventDoubts([]);
+                      setSelectedEventForDoubts(null);
+                    }}
+                  >
+                    ×
+                  </button>
+                  <div className="doubts-list">
+                    {selectedEventDoubts.length > 0 ? (
+                      selectedEventDoubts.map((doubt, index) => (
+                        <div key={doubt.id} className="doubt-item">
+                          <div className="doubt-header">
+                            <span className="doubt-user">{doubt.user_name}</span>
+                            <span className="doubt-time">
+                              {new Date(doubt.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="doubt-text">{doubt.doubt_text}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="no-doubts">No doubts have been asked for this event yet.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       ) : null}
-      <ToastContainer />
     </>
   );
 };

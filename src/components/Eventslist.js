@@ -4,18 +4,31 @@ import { clearMessage } from "./AuthSlice";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaSearch } from 'react-icons/fa';
+import { FaCalendarAlt, FaClock, FaMapMarkerAlt, FaSearch, FaFilter } from 'react-icons/fa';
 import './Eventslist.css';
 
 const EventsList = () => {
   const [events, setEvents] = useState([]);
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filter, setFilter] = useState('all'); // 'all', 'today', 'week', 'month'
   const userEmail = useSelector((state) => state.email.userEmail);
   const loginMessage = useSelector((state) => state.auth.message);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanningEvent, setScanningEvent] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [eventData, setEventData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    time: "",
+    venue: "",
+    Max_registrations: "",
+    session_link: ""
+  });
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -89,12 +102,13 @@ const EventsList = () => {
     fetchRegisteredEvents();
   }, [userEmail]);
 
-  const handleRegister = async (eventTitle, eventDate, eventTime, eventDescription, eventVenue) => {
+  const [registeringEvent, setRegisteringEvent] = useState("");
+  const handleRegister = async (id,eventTitle, eventDate, eventTime, eventDescription, eventVenue) => {
     if (!userEmail) {
       toast.error("Please log in to register for events.");
       return;
     }
-
+    setRegisteringEvent(id);
     try {
       const response = await fetch("http://localhost:5000/registerForEvent", {
         method: "POST",
@@ -115,11 +129,53 @@ const EventsList = () => {
       console.error("Error registering for event:", error);
       toast.error("Registration failed. Please try again.");
     }
+    setRegisteringEvent("");
   };
 
-  const filteredEvents = events.filter(event =>
+  const handleOpenScanner = (event) => {
+    setScanningEvent(event);
+    setScannerOpen(true);
+  };
+
+  const handleCloseScanner = () => {
+    setScannerOpen(false);
+    setScanningEvent(null);
+  };
+
+  const handleDeleteClick = (eventId, type) => {
+    setEventToDelete({ id: eventId, type });
+  };
+
+  const filterEvents = (events) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    const nextMonth = new Date(today);
+    nextMonth.setMonth(today.getMonth() + 1);
+
+    return events.filter(event => {
+      const eventDate = new Date(event.date);
+      eventDate.setHours(0, 0, 0, 0);
+
+      switch (filter) {
+        case 'today':
+          return eventDate.getTime() === today.getTime();
+        case 'week':
+          return eventDate >= today && eventDate < nextWeek;
+        case 'month':
+          return eventDate >= today && eventDate < nextMonth;
+        default:
+          return true;
+      }
+    });
+  };
+
+  const filteredEvents = filterEvents(events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ));
 
   const scrollEvents = (direction) => {
     const container = document.querySelector('.events-scroll-content');
@@ -138,7 +194,6 @@ const EventsList = () => {
   return (
     <div className="events-container">
       <div className="admin-header">
-       
         <h1 className="admin-heading">Upcoming Events</h1>
         <div className="header-right">
           <div className="search-container">
@@ -153,14 +208,36 @@ const EventsList = () => {
               />
             </div>
           </div>
-       
-          <button
-            type="button"
-            className="back-button"
-            onClick={() => navigate("/")}
-          >
-            ⬅ Back
-          </button>
+          <div className="filter-container">
+            <button
+              type="button"
+              className="filter-button"
+              onClick={() => setFilter('all')}
+            >
+              <FaFilter className="filter-icon" />
+              Filter
+            </button>
+            <div className="filter-dropdown">
+              <button
+                className={`filter-option ${filter === 'today' ? 'active' : ''}`}
+                onClick={() => setFilter('today')}
+              >
+                Today
+              </button>
+              <button
+                className={`filter-option ${filter === 'week' ? 'active' : ''}`}
+                onClick={() => setFilter('week')}
+              >
+                This Week
+              </button>
+              <button
+                className={`filter-option ${filter === 'month' ? 'active' : ''}`}
+                onClick={() => setFilter('month')}
+              >
+                This Month
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       {userEmail && <p>Logged in as: <strong>{userEmail}</strong></p>}
@@ -193,15 +270,33 @@ const EventsList = () => {
                       <div className="event-description">
                         <p>{event.description}</p>
                       </div>
+                      {event.session_link ? (
+                        <p>
+                          <strong>Session Link:</strong>{" "}
+                          <a href={event.session_link} target="_blank" rel="noopener noreferrer">
+                            {event.session_link}
+                          </a>
+                        </p>
+                      ) : (
+                        <p>
+                          <strong>Session Link:</strong> <span style={{ color: "#aaa" }}>Not yet added</span>
+                        </p>
+                      )}
                       <div className="event-actions">
                         <button
-                          onClick={() => handleRegister(event.title, event.date, event.time, event.description, event.venue)}
+                          onClick={() => handleRegister(event.id,event.title, event.date, event.time, event.description, event.venue)}
                           className={`register-button ${isRegistered ? 'registered' : ''}`}
-                          disabled={isFull || isRegistered}
+                          disabled={isFull || isRegistered || event.id === registeringEvent}
                         >
                           {isRegistered ? 'Registered' : (isFull ? 'Event Full' : 'Register')}
                         </button>
-                      </div>
+                        <button
+                          className="take-attendance-button"
+                          onClick={() => handleOpenScanner(event)}
+                        >
+                          Take My Attendance
+                        </button>
+                         </div>
                     </div>
                   );
                 })
@@ -218,7 +313,6 @@ const EventsList = () => {
           </div>
         </div>
       </div>
-      <ToastContainer />
     </div>
   );
 };

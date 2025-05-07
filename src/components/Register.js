@@ -120,7 +120,6 @@ const Register = ({ switchToLogin }) => {
         Already have an account? <button onClick={switchToLogin} className="isRegister">Login</button>
       </p> */}
 
-<ToastContainer/>
 
     </div>
   );

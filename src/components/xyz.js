@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 const AdminPanel = () => {
   const [isFormVisible, setIsFormVisible] = useState(false);
@@ -14,6 +15,9 @@ const AdminPanel = () => {
   });
   const [registeredStudents, setRegisteredStudents] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [deletingEventId, setDeletingEventId] = useState(null);
+  const [eventToDelete, setEventToDelete] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch events from backend
   useEffect(() => {
@@ -42,7 +46,11 @@ const AdminPanel = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (isSubmitting) return; // Prevent double submit
+
+    setIsSubmitting(true);
+
     if (isEditing) {
       // Update event
       try {
@@ -92,6 +100,8 @@ const AdminPanel = () => {
         console.error("Error occurred during form submission:", error);
       }
     }
+
+    setIsSubmitting(false); // Re-enable button after request
   };
 
   const handleEdit = (event) => {
@@ -107,40 +117,37 @@ const AdminPanel = () => {
     });
   };
 
-  const handleDelete = async (eventId) => {
+  const handleDelete = async () => {
+    if (!eventToDelete) return;
+
+    setDeletingEventId(eventToDelete); // Start animation
+
     try {
-      const response = await fetch(`http://localhost:5000/deleteEvent/${eventId}`, {
+      const response = await fetch(`http://localhost:5000/deleteEvent/${eventToDelete}`, {
         method: "DELETE",
       });
 
-      const result = await response.json();
-
+      const data = await response.json();
       if (response.ok) {
-        setEvents(events.filter((event) => event.id !== eventId));
-        console.log("Event deleted successfully:", result);
+        // Wait for animation, then remove from state
+        setTimeout(() => {
+          setEvents(events.filter(event => event.id !== eventToDelete));
+          setDeletingEventId(null);
+        }, 400); // 400ms matches the CSS animation duration
+        toast.success(data.message);
       } else {
-        console.error("Error deleting event:", result.message);
+        toast.error(data.message);
+        setDeletingEventId(null);
       }
+      fetchEvents();
     } catch (error) {
-      console.error("Error occurred during event deletion:", error);
+      console.error("Error deleting event:", error);
+      toast.error("Failed to delete event");
+      setDeletingEventId(null);
     }
+    setEventToDelete(null);
   };
 
-  // const handleAttendance = async (eventTitle) => {
-  //   try {
-  //     const response = await fetch(`http://localhost:5000/getRegisteredStudents/${eventTitle}`);
-  //     const data = await response.json();
-
-  //     if (response.ok) {
-  //       setSelectedEvent(eventTitle);
-  //       setRegisteredStudents(data.registeredStudents);
-  //     } else {
-  //       console.error("Error fetching registered students:", data.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error fetching registered students:", error);
-  //   }
-  // };
   const handleAttendance = async (eventTitle) => {
     try {
       const response = await fetch(`http://localhost:5000/getRegisteredStudents/${eventTitle}`);
@@ -224,15 +231,22 @@ const AdminPanel = () => {
               required
             />
           </div>
-          <button type="submit" className="add-event-submit-button">
-            {isEditing ? "Update Event" : "Add Event"}
+          <button
+            type="submit"
+            className="academic-submit-button"
+            disabled={isSubmitting}
+          >
+            {isEditing ? "Update Event" : isSubmitting ? "Adding..." : "Add Event"}
           </button>
         </form>
       )}
 
       <div className="events-list">
         {events.map((event) => (
-          <div key={event.id} className="event-item">
+          <div
+            key={event.id}
+            className={`event-card${deletingEventId === event.id ? " deleting" : ""}`}
+          >
             <h3>{event.title}</h3>
             <p><strong>Date:</strong> {event.date}</p>
             <p><strong>Time:</strong> {event.time}</p>
@@ -241,7 +255,7 @@ const AdminPanel = () => {
             <button onClick={() => handleEdit(event)} className="edit-event-button">
               📝 Edit
             </button>
-            <button onClick={() => handleDelete(event.id)} className="delete-event-button">
+            <button onClick={() => { setEventToDelete(event.id); }} className="delete-event-button">
               🗑️ Delete
             </button>
             <button onClick={() => handleAttendance(event.title)} className="attendance-button">

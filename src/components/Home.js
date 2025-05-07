@@ -5,7 +5,6 @@ import { logout } from "./AuthSlice";
 import { clearUserEmail } from "./EmailSlice";
 import About from "./About";
 import Services from "./Services";
-import Contact from "./ContactUs";
 import AuthPage from "./AuthPage";
 import EventsList from "./Eventslist";
 import NonAcademicEvents from "./NonAcademicEvents";
@@ -13,7 +12,7 @@ import AdminLogin from "./AdminLogin";
 import AdminPanel from "./AdminPanel";
 import Homepage from "./Homepage";
 import StudentProfile from "./StudentProfile";
-import { FaUser, FaBell, FaQuestionCircle, FaSignOutAlt, FaBars, FaChevronDown } from "react-icons/fa";
+import { FaUser, FaBell, FaQuestionCircle, FaSignOutAlt, FaBars } from "react-icons/fa";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import './Home.css';
@@ -21,7 +20,6 @@ import './Home.css';
 const Home = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
-  const [eventsDropdownOpen, setEventsDropdownOpen] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
@@ -32,10 +30,9 @@ const Home = () => {
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.nav-icons') && !event.target.closest('.nav-links') && !event.target.closest('.events-dropdown')) {
+      if (!event.target.closest('.nav-icons') && !event.target.closest('.nav-links')) {
         setMenuOpen(false);
         setNavOpen(false);
-        setEventsDropdownOpen(false);
       }
     };
 
@@ -47,7 +44,6 @@ const Home = () => {
   useEffect(() => {
     setMenuOpen(false);
     setNavOpen(false);
-    setEventsDropdownOpen(false);
   }, [navigate]);
 
   const handleLogout = () => {
@@ -68,7 +64,6 @@ const Home = () => {
         <ul className={`nav-links ${navOpen ? 'active' : ''}`}>
           <li><Link to="/about">About</Link></li>
           <li><Link to="/services">Services</Link></li>
-          <li><Link to="/contact">Contact Us</Link></li>
           {!isAuthenticated && (
             <>
               <li><Link to="/authPage">Register/Login</Link></li>
@@ -76,20 +71,10 @@ const Home = () => {
             </>
           )}
           {isAuthenticated && userType === 'user' && (
-            <li className="events-dropdown">
-              <div 
-                className="events-dropdown-trigger" 
-                onClick={() => setEventsDropdownOpen(!eventsDropdownOpen)}
-              >
-                Events <FaChevronDown />
-              </div>
-              {eventsDropdownOpen && (
-                <div className="events-dropdown-menu">
-                  <Link to="/eventsList">Academic Events</Link>
-                  <Link to="/nonAcademicEvents">Non-Academic Events</Link>
-                </div>
-              )}
-            </li>
+            <>
+              <li><Link to="/eventsList">Academic Events</Link></li>
+              <li><Link to="/nonAcademicEvents">Non-Academic Events</Link></li>
+            </>
           )}
           {isAuthenticated && userType === 'admin' && (
             <li><Link to="/adminPanel">Admin Panel</Link></li>
@@ -129,7 +114,6 @@ const Home = () => {
         <Route path="/" element={<Homepage />} />
         <Route path="/about" element={<About />} />
         <Route path="/services" element={<Services />} />
-        <Route path="/contact" element={<Contact />} />
         <Route path="/authPage" element={<AuthPage />} />
         <Route path="/eventsList" element={<EventsList />} />
         <Route path="/nonAcademicEvents" element={<NonAcademicEvents />} />
@@ -137,7 +121,6 @@ const Home = () => {
         <Route path="/adminPanel" element={<AdminPanel />} />
         <Route path="/profile" element={<StudentProfile />} />
       </Routes>
-      <ToastContainer />
     </div>
   );
 };
